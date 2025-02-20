@@ -1,10 +1,10 @@
 package com.example.motion.demo;
 
+import com.example.motion.behaviour.AdvancedWalkingLayer;
+import com.example.motion.behaviour.BasicWalkingLayer;
 import com.example.motion.data.InMemoryMotionDataRepository;
 import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.IMotionDataRepository;
-import com.example.motion.layers.AdvancedWalkingLayer;
-import com.example.motion.layers.BasicWalkingLayer;
 import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
 
