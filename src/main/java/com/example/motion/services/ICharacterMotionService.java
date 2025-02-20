@@ -1,17 +1,19 @@
-package com.example.motion.interfaces;
+package com.example.motion.services;
 
 import java.util.UUID;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import com.example.motion.model.Direction;
-import com.example.motion.model.MotionState;
+
+import com.example.motion.sys.behavior.IMotionLayer;
+import com.example.motion.sys.model.Direction;
+import com.example.motion.sys.model.MotionState;
 
 /**
  * Service-Interface für die API-Schicht der Charakterbewegung.
  * Stellt die primäre Schnittstelle für externe Systeme dar.
  */
 public interface ICharacterMotionService {
-    
+
     /**
      * Fügt einen neuen Motion Layer hinzu.
      *
@@ -53,8 +55,8 @@ public interface ICharacterMotionService {
      * @param speed Die Geschwindigkeit der Animation (1.0 = normal)
      * @return Future mit dem Bewegungszustand nach der Animation
      */
-    CompletableFuture<MotionState> playAnimation(UUID characterId, 
-                                                String animationId, 
+    CompletableFuture<MotionState> playAnimation(UUID characterId,
+                                                String animationId,
                                                 float speed);
 
     /**
@@ -65,8 +67,8 @@ public interface ICharacterMotionService {
      * @param speed Die Geschwindigkeit der Bewegung
      * @return Future mit dem aktualisierten Bewegungszustand
      */
-    CompletableFuture<MotionState> setMovementDirection(UUID characterId, 
-                                                       Direction direction, 
+    CompletableFuture<MotionState> setMovementDirection(UUID characterId,
+                                                       Direction direction,
                                                        float speed);
 
     /**

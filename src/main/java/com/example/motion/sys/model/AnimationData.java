@@ -1,4 +1,4 @@
-package com.example.motion.model;
+package com.example.motion.sys.model;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -14,11 +14,11 @@ public class AnimationData {
     private final AnimationType type;
     private final boolean looping;
 
-    public AnimationData(String id, 
-                        String name, 
-                        float duration, 
-                        List<KeyFrame> keyFrames, 
-                        AnimationType type, 
+    public AnimationData(String id,
+                        String name,
+                        float duration,
+                        List<KeyFrame> keyFrames,
+                        AnimationType type,
                         boolean looping) {
         this.id = id;
         this.name = name;
@@ -62,7 +62,7 @@ public class AnimationData {
 
         // Calculate interpolation factor
         float frameDuration = nextFrame.getTime() - prevFrame.getTime();
-        float factor = frameDuration > 0 ? 
+        float factor = frameDuration > 0 ?
             (time - prevFrame.getTime()) / frameDuration : 0;
 
         // Interpolate between frames

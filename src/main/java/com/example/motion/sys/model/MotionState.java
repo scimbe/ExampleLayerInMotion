@@ -1,4 +1,4 @@
-package com.example.motion.model;
+package com.example.motion.sys.model;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package com.example.motion.model;
+package com.example.motion.sys.model;
 
 /**
  * Repräsentiert einen dreidimensionalen Vektor für physikalische Berechnungen.

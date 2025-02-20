@@ -1,7 +1,7 @@
-package com.example.motion.behavior;
+package com.example.motion.sys.behavior;
 
-import com.example.motion.interfaces.IMotionLayer;
-import com.example.motion.model.*;
+import com.example.motion.sys.model.*;
+
 import java.util.UUID;
 
 /**

@@ -1,4 +1,4 @@
-package com.example.motion.model;
+package com.example.motion.sys.model;
 
 /**
  * Enthält physikalische Daten für Bewegungsberechnungen.
@@ -11,11 +11,11 @@ public class PhysicsData {
     private final Vector3D velocity;
     private final Vector3D acceleration;
 
-    public PhysicsData(Position position, 
-                      Rotation rotation, 
-                      float speed, 
-                      float deltaTime, 
-                      Vector3D velocity, 
+    public PhysicsData(Position position,
+                      Rotation rotation,
+                      float speed,
+                      float deltaTime,
+                      Vector3D velocity,
                       Vector3D acceleration) {
         this.position = position;
         this.rotation = rotation;

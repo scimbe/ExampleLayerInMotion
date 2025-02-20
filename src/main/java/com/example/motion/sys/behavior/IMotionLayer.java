@@ -1,9 +1,10 @@
-package com.example.motion.interfaces;
+package com.example.motion.sys.behavior;
 
 import java.util.UUID;
-import com.example.motion.model.CollisionData;
-import com.example.motion.model.MotionState;
-import com.example.motion.model.PhysicsData;
+
+import com.example.motion.sys.model.CollisionData;
+import com.example.motion.sys.model.MotionState;
+import com.example.motion.sys.model.PhysicsData;
 
 /**
  * Interface für die Logik-Schicht der Bewegungsverarbeitung.

@@ -1,17 +1,19 @@
-package com.example.motion.interfaces;
+package com.example.motion.sys.data;
 
 import java.util.List;
 import java.util.UUID;
+
+import com.example.motion.sys.model.AnimationData;
+import com.example.motion.sys.model.MotionState;
+
 import java.util.Optional;
-import com.example.motion.model.AnimationData;
-import com.example.motion.model.MotionState;
 
 /**
  * Repository-Interface für die Datenpersistenz der Bewegungsdaten.
  * Verwaltet die Speicherung und den Abruf von Bewegungsinformationen.
  */
 public interface IMotionDataRepository {
-    
+
     /**
      * Speichert einen Bewegungszustand.
      *

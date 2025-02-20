@@ -1,8 +1,7 @@
-package com.example.motion.data;
+package com.example.motion.sys.data;
 
-import com.example.motion.interfaces.IMotionDataRepository;
-import com.example.motion.model.AnimationData;
-import com.example.motion.model.MotionState;
+import com.example.motion.sys.model.AnimationData;
+import com.example.motion.sys.model.MotionState;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
  * Thread-sichere In-Memory-Implementierung des Motion Data Repositories.
  */
 public class InMemoryMotionDataRepository implements IMotionDataRepository {
-    
+
     private final Map<UUID, Queue<MotionState>> motionHistory;
     private final Map<UUID, MotionState> currentStates;
     private final Map<String, AnimationData> animations;
@@ -96,7 +95,7 @@ public class InMemoryMotionDataRepository implements IMotionDataRepository {
         int removedCount = 0;
 
         // Entferne alte Einträge
-        while (!history.isEmpty() && 
+        while (!history.isEmpty() &&
                currentTime - history.peek().getTimestamp() > maxAge) {
             history.poll();
             removedCount++;

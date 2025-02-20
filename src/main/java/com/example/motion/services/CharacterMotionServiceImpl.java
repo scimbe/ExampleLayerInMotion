@@ -1,9 +1,8 @@
 package com.example.motion.services;
 
-import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.interfaces.IMotionLayer;
-import com.example.motion.interfaces.IMotionDataRepository;
-import com.example.motion.model.*;
+import com.example.motion.sys.behavior.IMotionLayer;
+import com.example.motion.sys.data.IMotionDataRepository;
+import com.example.motion.sys.model.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
  * Implementierung des Character Motion Service mit Layer-Management.
  */
 public class CharacterMotionServiceImpl implements ICharacterMotionService {
-    
+
     private final IMotionDataRepository repository;
     private final Map<UUID, MotionState> characterStates;
     private final Map<UUID, MotionCallback> motionCallbacks;
@@ -88,15 +87,15 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     }
 
     @Override
-    public CompletableFuture<MotionState> playAnimation(UUID characterId, 
-                                                       String animationId, 
+    public CompletableFuture<MotionState> playAnimation(UUID characterId,
+                                                       String animationId,
                                                        float speed) {
         return CompletableFuture.supplyAsync(() -> {
             AnimationData animation = repository.getAnimationData(animationId)
                 .orElseThrow(() -> new IllegalArgumentException("Animation nicht gefunden: " + animationId));
 
             MotionState currentState = getOrCreateMotionState(characterId);
-            
+
             AnimationPlayback playback = new AnimationPlayback(
                 animation,
                 currentState,
@@ -105,7 +104,7 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
             );
 
             stopActiveAnimation(characterId);
-            
+
             activeAnimations.put(characterId, playback);
             scheduleAnimationUpdates(characterId, playback);
 
@@ -114,8 +113,8 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     }
 
     @Override
-    public CompletableFuture<MotionState> setMovementDirection(UUID characterId, 
-                                                              Direction direction, 
+    public CompletableFuture<MotionState> setMovementDirection(UUID characterId,
+                                                              Direction direction,
                                                               float speed) {
         return CompletableFuture.supplyAsync(() -> {
             MotionState currentState = getOrCreateMotionState(characterId);
@@ -125,7 +124,7 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 direction.toRotation(),
                 speed
             );
-            
+
             // Verarbeite Zustand durch alle Layer
             try {
                 layerLock.readLock().lock();
@@ -134,18 +133,18 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                     // Validiere und verarbeite den Zustand
                     if (layer.validateMotionState(processedState)) {
                         processedState = layer.processMotion(
-                            characterId, 
-                            processedState, 
+                            characterId,
+                            processedState,
                             1.0f/60.0f
                         );
                     }
-                    
+
                     // Prüfe auf Kollisionen
                     if (layer.checkCollision(characterId, processedState) != null) {
                         throw new IllegalStateException("Kollision erkannt");
                     }
                 }
-                
+
                 updateCharacterState(characterId, processedState);
                 return processedState;
             } finally {
@@ -158,10 +157,10 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     public CompletableFuture<MotionState> stopMotion(UUID characterId) {
         return CompletableFuture.supplyAsync(() -> {
             stopActiveAnimation(characterId);
-            
+
             MotionState currentState = getOrCreateMotionState(characterId);
             MotionState stoppedState = currentState.withSpeed(0.0f);
-            
+
             updateCharacterState(characterId, stoppedState);
             return stoppedState;
         });
@@ -185,10 +184,10 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 }
 
                 float currentTime = (System.currentTimeMillis() - playback.getStartTime()) / 1000.0f * playback.getSpeed();
-                
+
                 // Interpoliere Animationszustand
                 MotionState animatedState = playback.getAnimation().interpolateAtTime(
-                    currentTime, 
+                    currentTime,
                     playback.getBaseState()
                 );
 
@@ -199,20 +198,20 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                     for (IMotionLayer layer : getActiveLayers()) {
                         if (layer.validateMotionState(processedState)) {
                             processedState = layer.processMotion(
-                                characterId, 
-                                processedState, 
+                                characterId,
+                                processedState,
                                 1.0f/60.0f
                             );
                         }
                     }
-                    
+
                     updateCharacterState(characterId, processedState);
                 } finally {
                     layerLock.readLock().unlock();
                 }
 
                 // Prüfe Animation Ende
-                if (!playback.getAnimation().isLooping() && 
+                if (!playback.getAnimation().isLooping() &&
                     currentTime >= playback.getAnimation().getDuration()) {
                     stopActiveAnimation(characterId);
                 }
@@ -232,7 +231,7 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     private void updateCharacterState(UUID characterId, MotionState newState) {
         characterStates.put(characterId, newState);
         repository.saveMotionState(characterId, newState);
-        
+
         MotionCallback callback = motionCallbacks.get(characterId);
         if (callback != null) {
             callback.onMotionUpdate(characterId, newState);
@@ -262,9 +261,9 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
         private final float speed;
         private final long startTime;
 
-        public AnimationPlayback(AnimationData animation, 
-                               MotionState baseState, 
-                               float speed, 
+        public AnimationPlayback(AnimationData animation,
+                               MotionState baseState,
+                               float speed,
                                long startTime) {
             this.animation = animation;
             this.baseState = baseState;

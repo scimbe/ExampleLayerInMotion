@@ -1,13 +1,13 @@
 package com.example.motion.demo;
 
-import com.example.motion.data.InMemoryMotionDataRepository;
-import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.interfaces.IMotionDataRepository;
-import com.example.motion.behavior.BasicWalkingLayer;
-import com.example.motion.behavior.RunningLayer;
-import com.example.motion.behavior.IdleLayer;
-import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
+import com.example.motion.services.ICharacterMotionService;
+import com.example.motion.sys.behavior.BasicWalkingLayer;
+import com.example.motion.sys.behavior.IdleLayer;
+import com.example.motion.sys.behavior.RunningLayer;
+import com.example.motion.sys.data.IMotionDataRepository;
+import com.example.motion.sys.data.InMemoryMotionDataRepository;
+import com.example.motion.sys.model.*;
 
 import java.util.UUID;
 import java.util.List;

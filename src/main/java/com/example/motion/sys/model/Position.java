@@ -1,4 +1,4 @@
-package com.example.motion.model;
+package com.example.motion.sys.model;
 
 /**
  * Repräsentiert die Position eines Charakters im 3D-Raum.
