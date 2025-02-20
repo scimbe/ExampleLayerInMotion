@@ -10,6 +10,7 @@ import com.example.motion.sys.data.InMemoryMotionDataRepository;
 
 @SpringBootApplication
 @ComponentScan(basePackages = "com.example.motion.services")
+@ComponentScan(basePackages = "com.example.motion.web")
 public class MotionSystemApplication {
 
     public static void main(String[] args) {
