@@ -68,26 +68,26 @@ check_sonar_scanner() {
 
 # SonarScanner Installation
 install_sonar_scanner() {
-    local os_type
-    case "$(uname -s)" in
-        Linux*)  os_type="linux";;
-        Darwin*) os_type="macosx";;
-        *)       log_error "Betriebssystem nicht unterstützt"; exit 1;;
-    esac
+  local os_type
+  case "$(uname -s)" in
+    Linux*)   os_type="linux";;
+    Darwin*)  os_type="macosx";;
+    *)        log_error "Betriebssystem nicht unterstützt"; exit 1;;
+  esac
 
-    local download_url="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-${os_type}.zip"
-    local temp_dir=$(mktemp -d)
-    
-    log_info "Lade SonarScanner herunter..."
-    curl -L "$download_url" -o "$temp_dir/sonar-scanner.zip"
-    
-    log_info "Installiere SonarScanner..."
-    unzip -q "$temp_dir/sonar-scanner.zip" -d "$temp_dir"
-    mkdir -p "$HOME/.sonar"
-    mv "$temp_dir/sonar-scanner-$SONAR_SCANNER_VERSION-$os_type" "$SONAR_SCANNER_DIR"
-    rm -rf "$temp_dir"
-    
-    log_info "SonarScanner Installation abgeschlossen"
+  local download_url="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-${os_type}.zip"
+  local temp_dir=$(mktemp -d -t sonar-scanner) # Korrigierte Zeile
+  
+  log_info "Lade SonarScanner herunter..."
+  curl -L "$download_url" -o "$temp_dir/sonar-scanner.zip"
+  
+  log_info "Installiere SonarScanner..."
+  unzip -q "$temp_dir/sonar-scanner.zip" -d "$temp_dir"
+  mkdir -p "$HOME/.sonar"
+  mv "$temp_dir/sonar-scanner-$SONAR_SCANNER_VERSION-$os_type" "$SONAR_SCANNER_DIR"
+  rm -rf "$temp_dir"
+  
+  log_info "SonarScanner Installation abgeschlossen"
 }
 
 # Prüfe SonarQube-Server
