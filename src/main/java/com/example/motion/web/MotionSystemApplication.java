@@ -20,4 +20,9 @@ public class MotionSystemApplication {
     public IMotionDataRepository motionDataRepository() {
         return new InMemoryMotionDataRepository();
     }
+
+    @Bean
+    public CustomErrorController customErrorController() {
+        return new CustomErrorController();
+    }
 }
