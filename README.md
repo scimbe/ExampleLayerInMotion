@@ -169,6 +169,9 @@ Entwicklungsumgebung mit Docker:
 # Dev Container starten
 code --remote-containers .
 ```
+Manchmal ist das code-Kommando nicht im PATH verfügbar.     
+	-	In VS Code gehe zu:     
+Cmd + Shift + P → Tippe “Shell Command: Install ‘code’ command in PATH” → Enter.     
 
 ## Lizenz
 
