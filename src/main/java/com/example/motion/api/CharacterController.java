@@ -1,7 +1,9 @@
 package com.example.motion.api;
 
 import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.model.*;
+import com.example.motion.sys.model.MotionState;
+import com.example.motion.sys.model.Position;
+import com.example.motion.sys.model.Rotation;
 import com.example.motion.api.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,6 +1,8 @@
 package com.example.motion.interfaces;
 
-import com.example.motion.model.*;
+import com.example.motion.sys.model.MotionState;
+import com.example.motion.sys.model.Direction;
+import com.example.motion.sys.behavior.IMotionLayer;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;

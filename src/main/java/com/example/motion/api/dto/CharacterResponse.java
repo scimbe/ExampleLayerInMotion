@@ -1,6 +1,6 @@
 package com.example.motion.api.dto;
 
-import com.example.motion.model.MotionState;
+import com.example.motion.sys.model.MotionState;
 import lombok.Getter;
 
 import java.util.UUID;

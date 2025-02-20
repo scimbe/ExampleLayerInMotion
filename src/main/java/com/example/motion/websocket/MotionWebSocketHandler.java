@@ -1,7 +1,7 @@
 package com.example.motion.websocket;
 
 import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.model.MotionState;
+import com.example.motion.sys.model.MotionState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;

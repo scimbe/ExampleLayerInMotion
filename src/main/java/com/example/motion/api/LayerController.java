@@ -1,7 +1,7 @@
 package com.example.motion.api;
 
 import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.interfaces.IMotionLayer;
+import com.example.motion.sys.behavior.IMotionLayer;
 import com.example.motion.api.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
