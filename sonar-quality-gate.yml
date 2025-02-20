@@ -1,0 +1,90 @@
+# Quality Gate Configuration für Character Motion System
+# Importieren Sie diese Konfiguration in Ihren SonarQube-Server
+
+qualityGate:
+  name: "Motion System Quality Gate"
+  conditions:
+    # Code Coverage
+    - metric: coverage
+      op: LT
+      error: "80"
+      warning: "90"
+
+    # Unit Test Success Rate
+    - metric: test_success_density
+      op: LT
+      error: "100"
+      
+    # Code Duplications
+    - metric: duplicated_lines_density
+      op: GT
+      error: "3"
+      warning: "2"
+
+    # Maintainability
+    - metric: sqale_rating
+      op: GT
+      error: "2"  # A oder B erforderlich
+      
+    # Reliability
+    - metric: reliability_rating
+      op: GT
+      error: "1"  # A erforderlich (keine Bugs)
+      
+    # Security
+    - metric: security_rating
+      op: GT
+      error: "1"  # A erforderlich (keine Vulnerabilities)
+
+    # Technical Debt
+    - metric: sqale_index
+      op: GT
+      error: "5d"  # Maximal 5 Tage technische Schuld
+      warning: "3d"
+
+    # Code Smells
+    - metric: code_smells
+      op: GT
+      error: "100"
+      warning: "50"
+
+    # Complexity
+    - metric: complexity
+      op: GT
+      error: "500"
+      warning: "400"
+
+    # Documentation
+    - metric: comment_lines_density
+      op: LT
+      error: "20"
+      warning: "25"
+
+    # Function Complexity
+    - metric: function_complexity
+      op: GT
+      error: "10"
+      warning: "8"
+
+measures:
+  # Zusätzliche Metriken zur Überwachung
+  - metric: ncloc  # Lines of Code
+    op: GT
+    warning: "10000"
+  
+  - metric: cognitive_complexity
+    op: GT
+    warning: "15"
+    error: "20"
+
+  - metric: branch_coverage
+    op: LT
+    warning: "80"
+    error: "70"
+
+exclusions:
+  # Files die von der Analyse ausgeschlossen werden
+  - "**/generated/**/*"
+  - "**/*Test.java"
+  - "**/test/**/*"
+  - "**/demo/**/*"
