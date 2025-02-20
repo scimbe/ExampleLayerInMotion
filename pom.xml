@@ -28,7 +28,7 @@
         <sonar.host.url>http://localhost:9000</sonar.host.url>
         <sonar.login>${env.SONAR_TOKEN}</sonar.login>
         <sonar.java.source>${java.version}</sonar.java.source>
-        <sonar.java.target>${java.version}</sonar.target>
+        <sonar.java.target>${java.version}</sonar.java.target>
         <sonar.coverage.jacoco.xmlReportPaths>
             ${project.reporting.outputDirectory}/jacoco/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
