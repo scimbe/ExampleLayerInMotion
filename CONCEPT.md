@@ -20,7 +20,7 @@ Das Layer-basierte Charakter-Motion-System implementiert eine dreischichtige Arc
 - Session-Management und Zustandsverwaltung
 - Rate-Limiting und Quota-Überwachung
 
-#### Schnittstellen
+#### TODO Schnittstellen
 - REST-API für CRUD-Operationen
 - WebSocket-Endpunkte für Echtzeitaktualisierungen
 - Streaming-Endpoints für kontinuierliche Bewegungsdaten
