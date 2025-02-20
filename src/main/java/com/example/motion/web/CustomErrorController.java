@@ -15,9 +15,4 @@ public class CustomErrorController implements ErrorController {
     public String handleError(HttpServletRequest request) {
         return "Custom error message: The requested resource was not found.";
     }
-
-    @Override
-    public String getErrorPath() {
-        return "/error";
-    }
 }
