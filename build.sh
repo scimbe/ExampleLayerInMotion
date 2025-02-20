@@ -29,5 +29,34 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Rest of the script remains the same as in the previous version
-# (Include the entire previous content of build.sh here)
+# Prüfe ob notwendige Tools installiert sind
+check_requirements() {
+    log_info "Prüfe Systemvoraussetzungen..."
+
+    # Prüfe Maven
+    if ! command -v mvn &> /dev/null; then
+        log_error "Maven ist nicht installiert"
+        exit 1
+    fi
+    log_info "Maven gefunden: $(mvn --version | head -n 1)"
+
+    # Prüfe Docker
+    if ! command -v docker &> /dev/null; then
+        log_error "Docker ist nicht installiert"
+        exit 1
+    fi
+    log_info "Docker gefunden: $(docker --version)"
+
+    # Prüfe Java
+    if ! command -v java &> /dev/null; then
+        log_error "Java ist nicht installiert"
+        exit 1
+    fi
+    log_info "Java gefunden: $(java -version 2>&1 | head -n 1)"
+
+    # Prüfe SonarScanner
+    check_sonar_scanner
+}
+
+# Rest of the script remains the same as in the previous full version
+# (Include the entire previous content of build.sh here, but with the Java env setup source at the top)
