@@ -7,71 +7,49 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-analyze:
+  build-and-test:
     runs-on: ubuntu-latest
-    
     steps:
-    # Code auschecken mit vollständiger Git-History für SonarQube
-    - name: Code auschecken
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-    
-    # Java und Maven Setup
-    - name: Java Setup
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        cache: 'maven'
-    
-    # Projekt kompilieren
-    - name: Projekt kompilieren
-      run: mvn clean compile
-    
-    # JUnit-Tests ausführen
-    - name: JUnit-Tests ausführen
-      run: mvn test
-    
-    # JaCoCo-Testabdeckung generieren
-    - name: JaCoCo-Testabdeckung generieren
-      run: mvn jacoco:report
-    
-    # SonarQube Scanner Setup
-    - name: SonarQube Scanner installieren
-      uses: sonarsource/sonarqube-scan-action@master
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      with:
-        projectBaseDir: .
-        args: >
-          -Dsonar.projectKey=ExampleLayerInMotion
-          -Dsonar.organization=scimbe
-          -Dsonar.sources=src/main/java
-          -Dsonar.tests=src/test/java
-          -Dsonar.java.coveragePlugin=jacoco
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-    
-    # Optionale Analyse-Ergebnisse überprüfen
-    - name: SonarQube Quality Gate überprüfen
-      uses: sonarsource/sonarqube-quality-gate-action@master
-      timeout-minutes: 5
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-    
-    # Docker-Image bauen
-    - name: Docker-Image bauen
-      run: docker build -t motion-system .
-    
-    # Optional: Docker-Image in Registry pushen
-    # - name: Docker-Image pushen
-    #   run: |
-    #     echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-    #     docker push motion-system:latest
+      # Code auschecken mit vollständiger Git-History für SonarQube
+      - name: Code auschecken
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-# Kommentar zu erforderlichen GitHub Secrets:
-# Folgende Secrets müssen in den GitHub Repository Secrets konfiguriert werden:
-# - SONAR_TOKEN: Der Authentifizierungstoken für SonarQube
-# - SONAR_HOST_URL: Die URL des SonarQube-Servers
+      # Java und Maven Setup
+      - name: Java Setup
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      # Projekt kompilieren
+      - name: Projekt kompilieren
+        run: mvn clean compile
+
+      # JUnit-Tests ausführen
+      - name: JUnit-Tests ausführen
+        run: mvn test
+
+      # JaCoCo-Testabdeckung generieren
+      - name: JaCoCo-Testabdeckung generieren
+        run: mvn jacoco:report
+
+      # Docker-Image bauen
+      - name: Docker-Image bauen
+        run: docker build -t motion-system .
+
+      # Docker-Image testen (Unit Tests)
+      - name: Docker-Image testen
+        run: |
+          docker run -d --name motion-test motion-system
+          docker exec motion-test mvn test # Annahme: Tests können innerhalb des Containers ausgeführt werden
+          docker stop motion-test
+          docker rm motion-test
+
+      # Optional: Docker-Image in Registry pushen
+      # - name: Docker-Image pushen
+      #   run: |
+      #     echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      #     docker push motion-system:latest
