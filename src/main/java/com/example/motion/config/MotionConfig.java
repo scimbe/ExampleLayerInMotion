@@ -17,7 +17,7 @@ public class MotionConfig {
     }
 
     @Bean
-    public ICharacterMotionService characterMotionService(IMotionDataRepository repository) {
+    public CharacterMotionServiceImpl characterMotionService(IMotionDataRepository repository) {
         return new CharacterMotionServiceImpl(repository);
     }
 }

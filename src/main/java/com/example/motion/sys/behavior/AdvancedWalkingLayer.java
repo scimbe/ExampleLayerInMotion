@@ -182,7 +182,6 @@ public class AdvancedWalkingLayer implements IMotionLayer {
                 physicsData.getSpeed());
     }
 
-    @Override
     public boolean validateMotionState(MotionState motionState) {
         // Validierung basierend auf Gangart
         UUID characterId = motionState.getCharacterId();
