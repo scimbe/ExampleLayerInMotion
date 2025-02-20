@@ -167,6 +167,8 @@ Der Projekt enthält VS Code Konfigurationen für:
 Entwicklungsumgebung mit Docker:
 ```bash
 # Dev Container starten
+code .
+or
 code . --remote dev-container
 ```
 Manchmal ist das code-Kommando nicht im PATH verfügbar.     
