@@ -1,7 +1,6 @@
 package com.example.motion.interfaces;
 
 import java.util.UUID;
-import com.example.motion.model.AnimationData;
 import com.example.motion.model.CollisionData;
 import com.example.motion.model.MotionState;
 import com.example.motion.model.PhysicsData;
@@ -11,7 +10,7 @@ import com.example.motion.model.PhysicsData;
  * Verarbeitet Bewegungsberechnungen und Physik.
  */
 public interface IMotionLayer {
-    
+
     /**
      * Verarbeitet Bewegungsdaten und berechnet den nächsten Zustand.
      *
@@ -20,8 +19,8 @@ public interface IMotionLayer {
      * @param deltaTime Die vergangene Zeit seit dem letzten Update
      * @return Der neue Bewegungszustand
      */
-    MotionState processMotion(UUID characterId, 
-                            MotionState currentState, 
+    MotionState processMotion(UUID characterId,
+                            MotionState currentState,
                             float deltaTime);
 
     /**
@@ -31,7 +30,7 @@ public interface IMotionLayer {
      * @param motionState Der zu prüfende Bewegungszustand
      * @return Kollisionsdaten oder null wenn keine Kollision
      */
-    CollisionData checkCollision(UUID characterId, 
+    CollisionData checkCollision(UUID characterId,
                                 MotionState motionState);
 
     /**
@@ -41,7 +40,7 @@ public interface IMotionLayer {
      * @param physicsData Die physikalischen Eingabedaten
      * @return Der resultierende Bewegungszustand
      */
-    MotionState processPhysics(UUID characterId, 
+    MotionState processPhysics(UUID characterId,
                               PhysicsData physicsData);
 
     /**
@@ -60,7 +59,7 @@ public interface IMotionLayer {
      * @param factor Interpolationsfaktor (0.0 - 1.0)
      * @return Der interpolierte Zustand
      */
-    MotionState interpolateStates(MotionState start, 
-                                 MotionState end, 
+    MotionState interpolateStates(MotionState start,
+                                 MotionState end,
                                  float factor);
 }
