@@ -58,12 +58,6 @@ public class IdleLayer implements IMotionLayer {
                                 0.0f);
         }
 
-        @Override
-        public boolean validateMotionState(MotionState motionState) {
-                // Validiere Idle-Zustand
-                return motionState.getSpeed() == 0.0f;
-        }
-
         public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
                 // Sanfte Interpolation für Idle-Animationen
                 Position interpolatedPos = interpolatePosition(start.getPosition(),

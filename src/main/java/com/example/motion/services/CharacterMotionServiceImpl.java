@@ -137,14 +137,12 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 layerLock.readLock().lock();
                 MotionState processedState = newState;
                 for (IMotionLayer layer : getActiveLayers()) {
-                    // Validiere und verarbeite den Zustand
-                    if (layer.validateMotionState(processedState)) {
-                        processedState = layer.processMotion(
-                            characterId,
-                            processedState,
-                            1.0f/60.0f
-                        );
-                    }
+                    // Verarbeite den Zustand
+                    processedState = layer.processMotion(
+                        characterId,
+                        processedState,
+                        1.0f/60.0f
+                    );
 
                     // Prüfe auf Kollisionen
                     if (layer.checkCollision(characterId, processedState) != null) {
@@ -166,7 +164,12 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
             stopActiveAnimation(characterId);
 
             MotionState currentState = getOrCreateMotionState(characterId);
-            MotionState stoppedState = currentState.withSpeed(0.0f);
+            MotionState stoppedState = new MotionState(
+                currentState.getCharacterId(),
+                currentState.getPosition(),
+                currentState.getRotation(),
+                0.0f
+            );
 
             updateCharacterState(characterId, stoppedState);
             return stoppedState;
@@ -203,13 +206,11 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                     layerLock.readLock().lock();
                     MotionState processedState = animatedState;
                     for (IMotionLayer layer : getActiveLayers()) {
-                        if (layer.validateMotionState(processedState)) {
-                            processedState = layer.processMotion(
-                                characterId,
-                                processedState,
-                                1.0f/60.0f
-                            );
-                        }
+                        processedState = layer.processMotion(
+                            characterId,
+                            processedState,
+                            1.0f/60.0f
+                        );
                     }
 
                     updateCharacterState(characterId, processedState);
