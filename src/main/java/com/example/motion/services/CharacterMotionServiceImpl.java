@@ -2,33 +2,34 @@ package com.example.motion.services;
 
 import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.IMotionLayer;
-import com.example.motion.model.Direction;
-import com.example.motion.model.MotionState;
+import com.example.motion.interfaces.IMotionDataRepository;
+import com.example.motion.model.*;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
- * Implementierung des Character Motion Service.
- * Verwaltet die Bewegungen und Animationen von Charakteren.
+ * Implementierung des Character Motion Service mit Animation-Support.
  */
 public class CharacterMotionServiceImpl implements ICharacterMotionService {
-
+    
     private final IMotionLayer motionLayer;
+    private final IMotionDataRepository repository;
     private final Map<UUID, MotionState> characterStates;
     private final Map<UUID, MotionCallback> motionCallbacks;
+    private final Map<UUID, AnimationPlayback> activeAnimations;
+    private final ScheduledExecutorService animator;
 
     /**
      * Konstruktor für den Character Motion Service.
-     *
-     * @param motionLayer Die zu verwendende Motion Layer Implementation
      */
-    public CharacterMotionServiceImpl(IMotionLayer motionLayer) {
+    public CharacterMotionServiceImpl(IMotionLayer motionLayer, IMotionDataRepository repository) {
         this.motionLayer = motionLayer;
+        this.repository = repository;
         this.characterStates = new ConcurrentHashMap<>();
         this.motionCallbacks = new ConcurrentHashMap<>();
+        this.activeAnimations = new ConcurrentHashMap<>();
+        this.animator = Executors.newScheduledThreadPool(1);
     }
 
     @Override
@@ -36,24 +37,29 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                                                        String animationId, 
                                                        float speed) {
         return CompletableFuture.supplyAsync(() -> {
-            // Simuliere Animationsverarbeitung
+            // Lade Animation aus Repository
+            AnimationData animation = repository.getAnimationData(animationId)
+                .orElseThrow(() -> new IllegalArgumentException("Animation nicht gefunden: " + animationId));
+
+            // Hole aktuellen Zustand
             MotionState currentState = getOrCreateMotionState(characterId);
-            
-            // Dummy-Implementation: Erstelle einen neuen Zustand
-            MotionState newState = new MotionState(
-                characterId,
-                currentState.getPosition(),
-                currentState.getRotation(),
-                speed
+
+            // Erstelle neue Animation Playback
+            AnimationPlayback playback = new AnimationPlayback(
+                animation,
+                currentState,
+                speed,
+                System.currentTimeMillis()
             );
-            
-            // Validiere den neuen Zustand
-            if (motionLayer.validateMotionState(newState)) {
-                updateCharacterState(characterId, newState);
-                return newState;
-            } else {
-                throw new IllegalStateException("Ungültiger Bewegungszustand");
-            }
+
+            // Stoppe aktive Animation falls vorhanden
+            stopActiveAnimation(characterId);
+
+            // Starte neue Animation
+            activeAnimations.put(characterId, playback);
+            scheduleAnimationUpdates(characterId, playback);
+
+            return currentState;
         });
     }
 
@@ -64,7 +70,7 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
         return CompletableFuture.supplyAsync(() -> {
             MotionState currentState = getOrCreateMotionState(characterId);
             
-            // Dummy-Implementation: Aktualisiere die Richtung
+            // Erstelle neuen Zustand mit aktualisierter Richtung
             MotionState newState = new MotionState(
                 characterId,
                 currentState.getPosition(),
@@ -72,12 +78,14 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 speed
             );
             
-            // Führe Kollisionsprüfung durch
-            if (motionLayer.checkCollision(characterId, newState) == null) {
+            // Validiere und prüfe auf Kollisionen
+            if (motionLayer.validateMotionState(newState) && 
+                motionLayer.checkCollision(characterId, newState) == null) {
+                
                 updateCharacterState(characterId, newState);
                 return newState;
             } else {
-                throw new IllegalStateException("Kollision erkannt");
+                throw new IllegalStateException("Ungültiger Bewegungszustand oder Kollision");
             }
         });
     }
@@ -85,15 +93,10 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     @Override
     public CompletableFuture<MotionState> stopMotion(UUID characterId) {
         return CompletableFuture.supplyAsync(() -> {
-            MotionState currentState = getOrCreateMotionState(characterId);
+            stopActiveAnimation(characterId);
             
-            // Dummy-Implementation: Stoppe die Bewegung
-            MotionState stoppedState = new MotionState(
-                characterId,
-                currentState.getPosition(),
-                currentState.getRotation(),
-                0.0f
-            );
+            MotionState currentState = getOrCreateMotionState(characterId);
+            MotionState stoppedState = currentState.withSpeed(0.0f);
             
             updateCharacterState(characterId, stoppedState);
             return stoppedState;
@@ -110,45 +113,95 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
         return characterStates.getOrDefault(characterId, createDefaultMotionState(characterId));
     }
 
-    /**
-     * Aktualisiert den Zustand eines Charakters und benachrichtigt Callbacks.
-     *
-     * @param characterId Die ID des Charakters
-     * @param newState Der neue Bewegungszustand
-     */
+    private void scheduleAnimationUpdates(UUID characterId, AnimationPlayback playback) {
+        animator.scheduleAtFixedRate(() -> {
+            try {
+                if (!activeAnimations.containsKey(characterId)) {
+                    return;
+                }
+
+                // Berechne aktuelle Animationszeit
+                float currentTime = (System.currentTimeMillis() - playback.getStartTime()) / 1000.0f * playback.getSpeed();
+
+                // Interpoliere neuen Zustand
+                MotionState newState = playback.getAnimation().interpolateAtTime(
+                    currentTime, 
+                    playback.getBaseState()
+                );
+
+                // Validiere und aktualisiere
+                if (motionLayer.validateMotionState(newState)) {
+                    updateCharacterState(characterId, newState);
+
+                    // Prüfe ob Animation beendet ist
+                    if (!playback.getAnimation().isLooping() && 
+                        currentTime >= playback.getAnimation().getDuration()) {
+                        stopActiveAnimation(characterId);
+                    }
+                }
+            } catch (Exception e) {
+                // Log error in production environment
+                stopActiveAnimation(characterId);
+            }
+        }, 0, 16, TimeUnit.MILLISECONDS); // 60 FPS Update-Rate
+    }
+
+    private void stopActiveAnimation(UUID characterId) {
+        AnimationPlayback playback = activeAnimations.remove(characterId);
+        if (playback != null) {
+            // Optional: Finale Animation State speichern
+            repository.saveMotionState(characterId, getMotionState(characterId));
+        }
+    }
+
     private void updateCharacterState(UUID characterId, MotionState newState) {
+        // Speichere Zustand
         characterStates.put(characterId, newState);
+        repository.saveMotionState(characterId, newState);
         
-        // Benachrichtige registrierte Callbacks
+        // Benachrichtige Callback
         MotionCallback callback = motionCallbacks.get(characterId);
         if (callback != null) {
             callback.onMotionUpdate(characterId, newState);
         }
     }
 
-    /**
-     * Holt den aktuellen Zustand oder erstellt einen neuen.
-     *
-     * @param characterId Die ID des Charakters
-     * @return Der aktuelle oder neue Bewegungszustand
-     */
     private MotionState getOrCreateMotionState(UUID characterId) {
-        return characterStates.computeIfAbsent(characterId, 
-            this::createDefaultMotionState);
+        return repository.loadMotionState(characterId)
+            .orElseGet(() -> createDefaultMotionState(characterId));
     }
 
-    /**
-     * Erstellt einen Standard-Bewegungszustand für einen Charakter.
-     *
-     * @param characterId Die ID des Charakters
-     * @return Ein neuer Standard-Bewegungszustand
-     */
     private MotionState createDefaultMotionState(UUID characterId) {
         return new MotionState(
             characterId,
-            new Position(0, 0, 0),  // Startposition
-            new Rotation(0, 0, 0),  // Standardausrichtung
-            0.0f                    // Keine Bewegung
+            new Position(0, 0, 0),
+            new Rotation(0, 0, 0),
+            0.0f
         );
+    }
+
+    /**
+     * Hilfklasse für die Animation-Wiedergabe.
+     */
+    private static class AnimationPlayback {
+        private final AnimationData animation;
+        private final MotionState baseState;
+        private final float speed;
+        private final long startTime;
+
+        public AnimationPlayback(AnimationData animation, 
+                               MotionState baseState, 
+                               float speed, 
+                               long startTime) {
+            this.animation = animation;
+            this.baseState = baseState;
+            this.speed = speed;
+            this.startTime = startTime;
+        }
+
+        public AnimationData getAnimation() { return animation; }
+        public MotionState getBaseState() { return baseState; }
+        public float getSpeed() { return speed; }
+        public long getStartTime() { return startTime; }
     }
 }
