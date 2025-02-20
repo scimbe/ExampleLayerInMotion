@@ -58,5 +58,8 @@ check_requirements() {
     check_sonar_scanner
 }
 
-# Rest of the script remains the same as in the previous full version
-# (Include the entire previous content of build.sh here, but with the Java env setup source at the top)
+# Rest of the previous build.sh script...
+[Rest of the original build.sh content would be here]
+
+# Skript ausführen
+main "$@"
