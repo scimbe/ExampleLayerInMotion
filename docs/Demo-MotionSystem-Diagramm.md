@@ -185,6 +185,50 @@ graph TD
     E --> F[Bewegung stoppen]
     F --> G[Ende]
 ```
+# Sequenzdiagramme
+
+### LayerSwitchingDemo
+
+```mermaid
+sequenceDiagram
+    participant Main
+    participant Service as CharacterMotionServiceImpl
+    participant BasicLayer as BasicWalkingLayer
+    participant AdvancedLayer as AdvancedWalkingLayer
+
+    Main->>Service: addMotionLayer(BasicLayer, 1)
+    Main->>Service: setMovementDirection(characterId, walkDirection, 0.5f)
+    Service->>BasicLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: removeMotionLayer(BasicLayer)
+    Main->>Service: addMotionLayer(AdvancedLayer, 1)
+    Main->>Service: setMovementDirection(characterId, walkDirection, 0.5f)
+    Service->>AdvancedLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: stopMotion(characterId)
+```
+
+### MotionSystemDemo
+
+```mermaid
+sequenceDiagram
+    participant Main
+    participant Service as CharacterMotionServiceImpl
+    participant IdleLayer as IdleLayer
+    participant WalkingLayer as BasicWalkingLayer
+    participant RunningLayer as RunningLayer
+
+    Main->>Service: addMotionLayer(IdleLayer, 1)
+    Main->>Service: addMotionLayer(WalkingLayer, 2)
+    Main->>Service: addMotionLayer(RunningLayer, 3)
+    Main->>Service: playAnimation(characterId, "idle_breathing", 1.0f)
+    Service->>IdleLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: setMovementDirection(characterId, walkDirection, 1.0f)
+    Service->>WalkingLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: playAnimation(characterId, "basic_walk", 1.0f)
+    Service->>WalkingLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: setMovementDirection(characterId, newDirection, 1.0f)
+    Service->>RunningLayer: processMotion(characterId, currentState, deltaTime)
+    Main->>Service: stopMotion(characterId)
+```
 
 ## Detaillierte Erklärungen
 
