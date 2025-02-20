@@ -1,0 +1,29 @@
+# Maven
+target/
+!target/*-jar-with-dependencies.jar
+*.class
+.mvn/
+mvnw
+mvnw.cmd
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.log
+*.tmp
+tmp/
+temp/
+README.md
+CONTRIBUTING.md
+LICENSE
+docs/
