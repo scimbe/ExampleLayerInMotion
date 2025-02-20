@@ -9,7 +9,6 @@ import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Demonstriert den dynamischen Wechsel zwischen verschiedenen Motion Layers.

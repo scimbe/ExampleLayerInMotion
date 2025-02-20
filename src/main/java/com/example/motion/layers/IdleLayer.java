@@ -2,7 +2,6 @@ package com.example.motion.layers;
 
 import com.example.motion.interfaces.IMotionLayer;
 import com.example.motion.model.*;
-import java.util.UUID;
 
 /**
  * Implementiert Idle-Animationen und Ruhezustände.

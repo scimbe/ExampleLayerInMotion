@@ -1,7 +1,6 @@
 package com.example.motion.interfaces;
 
 import java.util.UUID;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.example.motion.model.Direction;
 import com.example.motion.model.MotionState;

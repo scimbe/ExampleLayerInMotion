@@ -7,7 +7,6 @@ import com.example.motion.model.MotionState;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 /**
  * Thread-sichere In-Memory-Implementierung des Motion Data Repositories.
