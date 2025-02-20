@@ -36,27 +36,6 @@ public class MotionState {
     public float getSpeed() { return speed; }
     public long getTimestamp() { return timestamp; }
 
-    /**
-     * Erstellt einen neuen Zustand mit aktualisierter Position.
-     */
-    public MotionState withPosition(Position newPosition) {
-        return new MotionState(characterId, newPosition, rotation, speed);
-    }
-
-    /**
-     * Erstellt einen neuen Zustand mit aktualisierter Rotation.
-     */
-    public MotionState withRotation(Rotation newRotation) {
-        return new MotionState(characterId, position, newRotation, speed);
-    }
-
-    /**
-     * Erstellt einen neuen Zustand mit aktualisierter Geschwindigkeit.
-     */
-    public MotionState withSpeed(float newSpeed) {
-        return new MotionState(characterId, position, rotation, newSpeed);
-    }
-
     @Override
     public String toString() {
         return String.format("MotionState(id=%s, pos=%s, rot=%s, speed=%.2f, time=%d)",

@@ -17,9 +17,4 @@ public class Rotation {
     public float getPitch() { return pitch; }
     public float getYaw() { return yaw; }
     public float getRoll() { return roll; }
-
-    @Override
-    public String toString() {
-        return String.format("Rotation(pitch=%.2f, yaw=%.2f, roll=%.2f)", pitch, yaw, roll);
-    }
 }
