@@ -1,0 +1,188 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  MAVEN_VERSION: '3.9.4'
+  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  DOCKER_IMAGE: motion-system
+  DOCKER_TAG: ${{ github.sha }}
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Build with Maven
+      run: mvn -B clean compile
+    
+    - name: Run Tests
+      run: mvn -B test
+    
+    - name: Generate JaCoCo Report
+      run: mvn jacoco:report
+    
+    - name: Cache SonarQube packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.sonar/cache
+        key: ${{ runner.os }}-sonar
+        restore-keys: ${{ runner.os }}-sonar
+    
+    - name: SonarQube Analysis
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        mvn sonar:sonar \
+        -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
+        -Dsonar.projectKey=com.example:motion-system \
+        -Dsonar.java.coveragePlugin=jacoco \
+        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+        -Dsonar.qualitygate.wait=true
+    
+    - name: Build Package
+      run: mvn -B package assembly:single -DskipTests
+    
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: motion-system-jar
+        path: target/*jar-with-dependencies.jar
+        retention-days: 5
+
+  docker:
+    name: Docker Build and Push
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: motion-system-jar
+        path: target
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+        cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:buildcache
+        cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:buildcache,mode=max
+
+  deploy:
+    name: Deploy to Environment
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://example.com
+    
+    steps:
+    - name: Deploy to Production
+      run: |
+        echo "Deploying version ${{ env.DOCKER_TAG }} to production"
+        # Hier würde die tatsächliche Deployment-Logik folgen
+        echo "Deployment completed"
+    
+    - name: Verify Deployment
+      run: |
+        echo "Verifying deployment..."
+        # Hier würden Healthchecks und Verifizierung folgen
+        echo "Verification completed"
+
+  notify:
+    name: Notify Status
+    needs: [build, docker, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Check build matrix status
+      if: ${{ contains(needs.*.result, 'failure') }}
+      run: exit 1
+    
+    - name: Send Status Email
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: ${{ secrets.SMTP_SERVER }}
+        server_port: ${{ secrets.SMTP_PORT }}
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "CI/CD Status: ${{ github.repository }} (${{ github.ref_name }})"
+        body: |
+          Pipeline Status: ${{ job.status }}
+          
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          Build Status: ${{ needs.build.result }}
+          Docker Status: ${{ needs.docker.result }}
+          Deploy Status: ${{ needs.deploy.result }}
+          
+          Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        to: ${{ secrets.NOTIFICATION_EMAIL }}
+        from: CI/CD Pipeline
+
+on-failure:
+  steps:
+    - name: Create Issue on Failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Pipeline Failure: ${process.env.GITHUB_WORKFLOW}`,
+            body: `Pipeline failed on ${process.env.GITHUB_REF_NAME}
+                   
+                   Commit: ${process.env.GITHUB_SHA}
+                   Run: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}
+                   
+                   Please investigate and fix the issue.`
+          })
