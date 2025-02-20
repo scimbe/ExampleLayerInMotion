@@ -4,100 +4,196 @@
 
 Das Layer-basierte Charakter-Motion-System implementiert eine dreischichtige Architektur zur Verwaltung und Steuerung von Charakterbewegungen in verteilten Systemen. Diese Architektur ermöglicht eine klare Trennung von Zuständigkeiten und verbessert die Wartbarkeit sowie Erweiterbarkeit des Systems.
 
-## Architekturschichten
+## Detaillierte Schichtarchitektur
 
 ### 1. Motion-API-Schicht (Präsentationsschicht)
 
-Die API-Schicht dient als primäre Schnittstelle für externe Systeme und implementiert:
+#### Kernverantwortlichkeiten
+- Bereitstellung einer einheitlichen Schnittstelle für Client-Anwendungen
+- Transformation externer Anfragen in interne Kommandos
+- Statusüberwachung und Gesundheitschecks
+- Lastenausgleich und Request-Routing
 
-- REST-konforme Endpunkte für Bewegungssteuerung
-- WebSocket-Verbindungen für Echtzeitaktualisierungen
-- Validierung eingehender Befehle
-- Transformation von Bewegungsdaten in das interne Format
+#### Datenverarbeitung
+- Validierung eingehender JSON-Payloads
+- Transformation von Client-spezifischen Formaten
+- Session-Management und Zustandsverwaltung
+- Rate-Limiting und Quota-Überwachung
+
+#### Schnittstellen
+- REST-API für CRUD-Operationen
+- WebSocket-Endpunkte für Echtzeitaktualisierungen
+- Streaming-Endpoints für kontinuierliche Bewegungsdaten
+- Health-Check und Monitoring-Endpunkte
 
 ### 2. Motion-Logik-Schicht (Geschäftslogik)
 
-Die Logik-Schicht verarbeitet alle Bewegungsberechnungen und enthält:
+#### Kernverantwortlichkeiten
+- Bewegungsberechnung und Physik-Simulation
+- Kollisionserkennung und -auflösung
+- Zustandsmaschinen für Bewegungsabläufe
+- Event-Processing und -Dispatching
 
-- Bewegungsinterpolation für flüssige Übergänge
-- Kollisionserkennung und -vermeidung
-- Physikalische Berechnungen
-- Zustandsverwaltung der Charaktere
-- Event-System für Bewegungsereignisse
+#### Datenverarbeitung
+- Verarbeitung von Bewegungskommandos
+- Berechnung von Interpolationen
+- Aggregation von Sensordaten
+- Generierung von Bewegungspfaden
+
+#### Algorithmen und Berechnungen
+- Pfadfindung und Routenoptimierung
+- Inverse Kinematik
+- Physikalische Simulationen
+- Bewegungsmuster-Erkennung
 
 ### 3. Motion-Daten-Schicht (Persistenzschicht)
 
-Die Daten-Schicht ist verantwortlich für:
+#### Kernverantwortlichkeiten
+- Datenpersistenz und -verwaltung
+- Caching und Zwischenspeicherung
+- Versionierung von Bewegungsdaten
+- Backup und Recovery
 
-- Persistierung von Bewegungsdaten
-- Caching häufig verwendeter Bewegungsmuster
-- Versionierung von Bewegungsabläufen
-- Datenkonsistenz und -integrität
-- Optimierte Abfragen für Bewegungsinformationen
+#### Datenmodelle
+- Bewegungsmuster und -sequenzen
+- Charakterzustände und -attribute
+- Physikalische Eigenschaften
+- Kollisionsgeometrien
 
-## Vorteile der Architektur
+#### Datenbankoperationen
+- CRUD-Operationen für Bewegungsdaten
+- Batch-Processing für Massendaten
+- Indexierung und Optimierung
+- Datenkonsistenzprüfungen
 
-1. **Skalierbarkeit**
-   - Horizontale Skalierung einzelner Schichten
-   - Lastverteilung nach Bedarf
-   - Unabhängige Ressourcenzuweisung
+## Schichtübergreifende Interaktionen
 
-2. **Wartbarkeit**
-   - Klare Trennung der Zuständigkeiten
-   - Vereinfachte Fehleranalyse
-   - Modularer Aufbau für einfache Updates
+### Datenfluss und Kommunikation
 
-3. **Erweiterbarkeit**
-   - Einfache Integration neuer Bewegungsmuster
-   - Flexible Anpassung an verschiedene Clients
-   - Modulare Erweiterung der Funktionalität
+#### API zu Logik
+1. Anfrageverarbeitung
+   - Eingehende Requests werden validiert
+   - Transformation in interne Kommandos
+   - Weiterleitung an zuständige Logik-Komponente
 
-4. **Performance**
-   - Optimierte Datenzugriffe
-   - Effizientes Caching
-   - Reduzierte Netzwerklast
+2. Antwortverarbeitung
+   - Empfang der Verarbeitungsergebnisse
+   - Transformation in Client-Format
+   - Fehlerbehandlung und -reporting
 
-## Technische Implementierung
+#### Logik zu Daten
+1. Datenzugriff
+   - Abruf von Bewegungsmustern
+   - Speicherung von Berechnungsergebnissen
+   - Zwischenspeicherung häufiger Zugriffe
 
-Die Implementierung erfolgt unter Berücksichtigung folgender Aspekte:
+2. Datensynchronisation
+   - Konsistenzprüfungen
+   - Transaktionsmanagement
+   - Konfliktauflösung
 
-```mermaid
-graph TD
-    A[Client] --> B[Motion-API-Schicht]
-    B --> C[Motion-Logik-Schicht]
-    C --> D[Motion-Daten-Schicht]
-    D --> E[Datenbank]
+### Datentransformationen
+
+#### Eingangstransformation
+```json
+{
+  "characterId": "char123",
+  "movement": {
+    "type": "walk",
+    "direction": [1.0, 0.0, 0.0],
+    "speed": 1.5
+  }
+}
 ```
 
-### Kommunikationsprotokolle
+#### Interne Repräsentation
+```protobuf
+message MotionCommand {
+  string entity_id = 1;
+  Vector3 direction = 2;
+  float velocity = 3;
+  MotionType type = 4;
+  timestamp = 5;
+}
+```
 
-- REST für administrative Aufgaben
-- WebSocket für Echtzeitkommunikation
-- gRPC für Interschicht-Kommunikation
+#### Persistenzformat
+```sql
+CREATE TABLE motion_records (
+  id UUID PRIMARY KEY,
+  entity_id VARCHAR(50),
+  motion_data JSONB,
+  timestamp TIMESTAMP,
+  version INT
+);
+```
 
-### Datenformate
+## Fehlerbehandlung und Recovery
 
-- JSON für API-Kommunikation
-- Protocol Buffers für interne Kommunikation
-- Binary für optimierte Bewegungsdaten
+### Schichtspezifische Fehlerbehandlung
 
-## Sicherheitsaspekte
+#### API-Schicht
+- Validierungsfehler
+- Authentifizierungsfehler
+- Rate-Limiting-Überschreitungen
+- Timeout-Behandlung
 
-- Authentifizierung über JWT
-- Verschlüsselte Kommunikation
-- Rate Limiting
-- Input Validation
+#### Logik-Schicht
+- Berechnungsfehler
+- Kollisionskonflikte
+- Ressourcenengpässe
+- Zustandsinkonsistenzen
 
-## Performance-Optimierung
+#### Daten-Schicht
+- Datenbank-Connectivity
+- Speicherengpässe
+- Konsistenzfehler
+- Versionierungskonflikte
 
-- Caching-Strategien
-- Lazy Loading
-- Bulk Operations
-- Indexierung von Bewegungsdaten
+### Recovery-Strategien
 
-## Monitoring und Logging
+1. Automatische Wiederherstellung
+   - Retry-Mechanismen
+   - Circuit Breaker
+   - Fallback-Optionen
 
-- Distributed Tracing
-- Performance Metrics
-- Error Tracking
-- Audit Logging
+2. Manuelle Intervention
+   - Admin-Interface
+   - Notfall-Prozeduren
+   - Debugging-Tools
+
+## Monitoring und Observability
+
+### Metriken pro Schicht
+
+#### API-Schicht
+- Request/Response-Zeiten
+- Fehlerraten
+- Aktive Verbindungen
+- Durchsatz
+
+#### Logik-Schicht
+- Berechnungszeiten
+- Ressourcenauslastung
+- Event-Durchsatz
+- Cache-Trefferrate
+
+#### Daten-Schicht
+- Query-Performance
+- Speicherauslastung
+- I/O-Operationen
+- Replikationsverzögerung
+
+## Deployment und Skalierung
+
+### Containerisierung
+- Docker-Images pro Schicht
+- Kubernetes-Deployment
+- Service-Mesh-Integration
+- Auto-Scaling-Policies
+
+### Lastverteilung
+- Horizontale Skalierung
+- Load-Balancing-Strategien
+- Resource-Quotas
+- Scaling-Trigger
