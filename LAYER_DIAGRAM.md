@@ -4,7 +4,7 @@
 ```mermaid
 classDiagram
     %% Interfaces mit Pseudo-Namespaces
-    class "api.IMotionAPI" {
+    class api.IMotionAPI {
         <<interface>>
         +executeMotion(MotionCommand)
         +queryMotionState(EntityId)
@@ -12,7 +12,7 @@ classDiagram
         +registerMotionHandler(Handler)
     }
 
-    class "logic.IMotionLogic" {
+    class logic.IMotionLogic {
         <<interface>>
         +processMotion(MotionData)
         +calculateNextState(EntityState)
@@ -20,7 +20,7 @@ classDiagram
         +handleCollision(CollisionEvent)
     }
 
-    class "data.IMotionData" {
+    class data.IMotionData {
         <<interface>>
         +saveMotionState(EntityState)
         +loadMotionPattern(PatternId)
@@ -29,44 +29,44 @@ classDiagram
     }
 
     %% Implementierungen der Schichten
-    class "api.MotionAPILayer" {
+    class api.MotionAPILayer {
         -logicLayer: logic.IMotionLogic
         +handleRequest(Request)
         +validateInput(Input)
         +transformResponse(Response)
     }
 
-    class "logic.MotionLogicLayer" {
+    class logic.MotionLogicLayer {
         -dataLayer: data.IMotionData
         +executeBusinessLogic(Command)
         +processPhysics(State)
         +handleEvents(Event)
     }
 
-    class "data.MotionDataLayer" {
+    class data.MotionDataLayer {
         +persistData(Data)
         +loadData(Query)
         +manageCache(CacheOperation)
     }
 
     %% Vererbungsbeziehungen
-    "api.MotionAPILayer" ..|> "api.IMotionAPI"
-    "logic.MotionLogicLayer" ..|> "logic.IMotionLogic"
-    "data.MotionDataLayer" ..|> "data.IMotionData"
+    api.MotionAPILayer ..|> api.IMotionAPI
+    logic.MotionLogicLayer ..|> logic.IMotionLogic
+    data.MotionDataLayer ..|> data.IMotionData
     
     %% Abhängigkeiten zwischen Schichten
-    "api.MotionAPILayer" --> "logic.IMotionLogic"
-    "logic.MotionLogicLayer" --> "data.IMotionData"
+    api.MotionAPILayer --> logic.IMotionLogic
+    logic.MotionLogicLayer --> data.IMotionData
 
     %% Datenmodelle
-    class "model.MotionCommand" {
+    class model.MotionCommand {
         +entityId: string
         +motionType: MotionType
         +parameters: MotionParameters
         +timestamp: DateTime
     }
 
-    class "model.EntityState" {
+    class model.EntityState {
         +id: string
         +position: Vector3D
         +velocity: Vector3D
@@ -74,7 +74,7 @@ classDiagram
         +motionState: State
     }
 
-    class "model.MotionPattern" {
+    class model.MotionPattern {
         +id: string
         +sequence: MotionSequence[]
         +constraints: MotionConstraints
@@ -82,9 +82,9 @@ classDiagram
     }
 
     %% Datenmodellbeziehungen
-    "api.MotionAPILayer" ..> "model.MotionCommand"
-    "logic.MotionLogicLayer" ..> "model.EntityState"
-    "data.MotionDataLayer" ..> "model.MotionPattern"
+    api.MotionAPILayer ..> model.MotionCommand
+    logic.MotionLogicLayer ..> model.EntityState
+    data.MotionDataLayer ..> model.MotionPattern
 ```
 
 ## Schnittstellenbeschreibung
