@@ -30,6 +30,30 @@ Das Character Motion System implementiert eine dreischichtige Architektur zur Ve
    ./build.sh --all
    ```
 
+## Spring Boot Service
+
+### Starten des Spring Boot Service
+
+1. Spring Boot Anwendung starten:
+   ```bash
+   mvn spring-boot:run
+   ```
+
+2. Alternativ können Sie das JAR-File erstellen und ausführen:
+   ```bash
+   mvn clean package
+   java -jar target/motion-system-1.0-SNAPSHOT.jar
+   ```
+
+### Zugriff auf die animierte Oberfläche
+
+1. Öffnen Sie Ihren Webbrowser und navigieren Sie zu:
+   ```
+   http://localhost:8080/animated-surface
+   ```
+
+2. Sie sollten eine animierte Oberfläche sehen, die Bewegung, den Wechsel der Motion Layer und die Koordinaten auf einem Gitter anzeigt.
+
 ## SonarQube Integration
 
 ### Lokale Einrichtung
