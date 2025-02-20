@@ -1,7 +1,7 @@
 # Schichten-Diagramm des Motion-Systems
 
 ## Architekturübersicht
-```meriad
+```mermaid
 classDiagram
     %% Interfaces mit Pseudo-Namespaces
     class "api.IMotionAPI" {
