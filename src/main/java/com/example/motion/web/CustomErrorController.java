@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
+@RequestMapping("/error")
 public class CustomErrorController implements ErrorController {
 
-    @RequestMapping("/error")
     @ResponseBody
     public String handleError(HttpServletRequest request) {
         return "Custom error message: The requested resource was not found.";
