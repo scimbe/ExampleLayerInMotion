@@ -44,7 +44,6 @@ public class BasicWalkingLayer implements IMotionLayer {
         return null;
     }
 
-    @Override
     public MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
         // Grundlegende Gravitationsberechnung
         Position adjustedPosition = new Position(
@@ -71,7 +70,6 @@ public class BasicWalkingLayer implements IMotionLayer {
                                                 2))))) <= MAX_SLOPE;
     }
 
-    @Override
     public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
         Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(),
                 factor);

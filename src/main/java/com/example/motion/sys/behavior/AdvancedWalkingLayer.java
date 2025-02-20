@@ -158,7 +158,6 @@ public class AdvancedWalkingLayer implements IMotionLayer {
         return null;
     }
 
-    @Override
     public MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
         // Basis-Physik mit Gangart-spezifischen Anpassungen
         GaitType gaitType = characterGaits.getOrDefault(characterId, GaitType.NORMAL);
@@ -198,7 +197,6 @@ public class AdvancedWalkingLayer implements IMotionLayer {
         return motionState.getSpeed() <= maxSpeed;
     }
 
-    @Override
     public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
         Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(),
                 factor);
