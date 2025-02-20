@@ -3,9 +3,9 @@ package com.example.motion.demo;
 import com.example.motion.data.InMemoryMotionDataRepository;
 import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.IMotionDataRepository;
-import com.example.motion.layers.BasicWalkingLayer;
-import com.example.motion.layers.RunningLayer;
-import com.example.motion.layers.IdleLayer;
+import com.example.motion.behavior.BasicWalkingLayer;
+import com.example.motion.behavior.RunningLayer;
+import com.example.motion.behavior.IdleLayer;
 import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
 
