@@ -3,6 +3,13 @@ package com.example.motion.api;
 import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.IMotionLayer;
 import com.example.motion.api.dto.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/layers")
+@Tag(name = "Layer Controller", description = "API zur Verwaltung von Motion Layers")
 public class LayerController {
 
     private final ICharacterMotionService motionService;
@@ -18,6 +26,12 @@ public class LayerController {
         this.motionService = motionService;
     }
 
+    @Operation(summary = "Liste aller aktiven Layer",
+              description = "Gibt eine Liste aller aktuell aktiven Motion Layer zurück")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Layer erfolgreich abgerufen"),
+        @ApiResponse(responseCode = "500", description = "Interner Serverfehler")
+    })
     @GetMapping
     public ResponseEntity<List<LayerResponse>> getActiveLayers() {
         List<IMotionLayer> layers = motionService.getActiveLayers();
@@ -30,8 +44,18 @@ public class LayerController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Fügt einen neuen Layer hinzu",
+              description = "Fügt einen neuen Motion Layer mit der angegebenen Priorität hinzu")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Layer erfolgreich hinzugefügt"),
+        @ApiResponse(responseCode = "400", description = "Layer existiert bereits oder ungültige Parameter"),
+        @ApiResponse(responseCode = "500", description = "Fehler beim Erstellen des Layers")
+    })
     @PostMapping
-    public ResponseEntity<LayerResponse> addLayer(@RequestBody LayerRequest request) {
+    public ResponseEntity<LayerResponse> addLayer(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Layer-Klasse und Priorität")
+            @RequestBody LayerRequest request) {
         try {
             Class<?> layerClass = Class.forName(request.getClassName());
             IMotionLayer layer = (IMotionLayer) layerClass.getDeclaredConstructor().newInstance();
@@ -52,8 +76,17 @@ public class LayerController {
         }
     }
 
+    @Operation(summary = "Entfernt einen Layer",
+              description = "Entfernt einen Motion Layer aus dem System")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Layer erfolgreich entfernt"),
+        @ApiResponse(responseCode = "404", description = "Layer nicht gefunden"),
+        @ApiResponse(responseCode = "400", description = "Ungültige Layer-Klasse")
+    })
     @DeleteMapping("/{className}")
-    public ResponseEntity<Void> removeLayer(@PathVariable String className) {
+    public ResponseEntity<Void> removeLayer(
+            @Parameter(description = "Vollqualifizierter Klassenname des Layers")
+            @PathVariable String className) {
         try {
             Class<?> layerClass = Class.forName(className);
             IMotionLayer layer = (IMotionLayer) layerClass.getDeclaredConstructor().newInstance();
@@ -69,9 +102,19 @@ public class LayerController {
         }
     }
 
+    @Operation(summary = "Aktualisiert die Layer-Priorität",
+              description = "Ändert die Priorität eines existierenden Motion Layers")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Priorität erfolgreich aktualisiert"),
+        @ApiResponse(responseCode = "404", description = "Layer nicht gefunden"),
+        @ApiResponse(responseCode = "400", description = "Ungültige Layer-Klasse oder Priorität")
+    })
     @PutMapping("/{className}/priority")
     public ResponseEntity<LayerResponse> updateLayerPriority(
+            @Parameter(description = "Vollqualifizierter Klassenname des Layers")
             @PathVariable String className,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Neue Priorität für den Layer")
             @RequestBody PriorityRequest request) {
         try {
             Class<?> layerClass = Class.forName(className);
