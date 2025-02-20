@@ -2,8 +2,8 @@ package com.example.motion.config;
 
 import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.IMotionLayer;
-import com.example.motion.data.InMemoryMotionDataRepository;
-import com.example.motion.interfaces.IMotionDataRepository;
+import com.example.motion.sys.data.InMemoryMotionDataRepository;
+import com.example.motion.sys.data.IMotionDataRepository;
 import com.example.motion.services.CharacterMotionServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
