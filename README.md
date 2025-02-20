@@ -194,6 +194,9 @@ mvn jacoco:report
 
 # Docker Image bauen
 docker build -t motion-system .
+
+# Sping Framework starten
+mvn spring-boot:run
 ```
 
 ### VS Code Integration
