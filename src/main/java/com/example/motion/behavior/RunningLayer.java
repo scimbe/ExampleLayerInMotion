@@ -1,4 +1,4 @@
-package com.example.motion.behaviour;
+package com.example.motion.behavior;
 
 import com.example.motion.interfaces.IMotionLayer;
 import com.example.motion.model.*;
@@ -10,7 +10,9 @@ import java.util.UUID;
 public class RunningLayer implements IMotionLayer {
 
     private static final float RUNNING_SPEED = 3.0f;
+
     private static final float ACCELERATION = 2.0f;
+
     private static final float MAX_STAMINA = 100.0f;
 
     private float currentStamina = MAX_STAMINA;
@@ -34,19 +36,20 @@ public class RunningLayer implements IMotionLayer {
         Rotation rotation = currentState.getRotation();
 
         float distance = speed * RUNNING_SPEED * deltaTime;
-        float newX = currentPos.getX() + distance * (float)Math.cos(Math.toRadians(rotation.getYaw()));
-        float newZ = currentPos.getZ() + distance * (float)Math.sin(Math.toRadians(rotation.getYaw()));
+        float newX = currentPos.getX()
+                + distance * (float) Math.cos(Math.toRadians(rotation.getYaw()));
+        float newZ = currentPos.getZ()
+                + distance * (float) Math.sin(Math.toRadians(rotation.getYaw()));
 
         // Füge vertikale Oszillation für Laufbewegung hinzu
-        float bobbing = (float)Math.sin(System.currentTimeMillis() / 200.0) * 0.1f;
+        float bobbing = (float) Math.sin(System.currentTimeMillis() / 200.0) * 0.1f;
         float newY = currentPos.getY() + bobbing;
 
         return new MotionState(
-            characterId,
-            new Position(newX, newY, newZ),
-            rotation,
-            speed
-        );
+                characterId,
+                new Position(newX, newY, newZ),
+                rotation,
+                speed);
     }
 
     @Override
@@ -64,11 +67,10 @@ public class RunningLayer implements IMotionLayer {
         }
 
         return new MotionState(
-            characterId,
-            physicsData.getPosition(),
-            physicsData.getRotation(),
-            speed
-        );
+                characterId,
+                physicsData.getPosition(),
+                physicsData.getRotation(),
+                speed);
     }
 
     @Override
@@ -79,31 +81,30 @@ public class RunningLayer implements IMotionLayer {
     @Override
     public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
         // Ähnlich wie BasicWalkingLayer, aber mit Berücksichtigung der höheren Geschwindigkeit
-        Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(), factor);
-        Rotation interpolatedRot = interpolateRotation(start.getRotation(), end.getRotation(), factor);
+        Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(),
+                factor);
+        Rotation interpolatedRot = interpolateRotation(start.getRotation(), end.getRotation(),
+                factor);
         float interpolatedSpeed = start.getSpeed() + (end.getSpeed() - start.getSpeed()) * factor;
 
         return new MotionState(
-            start.getCharacterId(),
-            interpolatedPos,
-            interpolatedRot,
-            interpolatedSpeed
-        );
+                start.getCharacterId(),
+                interpolatedPos,
+                interpolatedRot,
+                interpolatedSpeed);
     }
 
     private Position interpolatePosition(Position start, Position end, float factor) {
         return new Position(
-            start.getX() + (end.getX() - start.getX()) * factor,
-            start.getY() + (end.getY() - start.getY()) * factor,
-            start.getZ() + (end.getZ() - start.getZ()) * factor
-        );
+                start.getX() + (end.getX() - start.getX()) * factor,
+                start.getY() + (end.getY() - start.getY()) * factor,
+                start.getZ() + (end.getZ() - start.getZ()) * factor);
     }
 
     private Rotation interpolateRotation(Rotation start, Rotation end, float factor) {
         return new Rotation(
-            start.getPitch() + (end.getPitch() - start.getPitch()) * factor,
-            start.getYaw() + (end.getYaw() - start.getYaw()) * factor,
-            start.getRoll() + (end.getRoll() - start.getRoll()) * factor
-        );
+                start.getPitch() + (end.getPitch() - start.getPitch()) * factor,
+                start.getYaw() + (end.getYaw() - start.getYaw()) * factor,
+                start.getRoll() + (end.getRoll() - start.getRoll()) * factor);
     }
 }

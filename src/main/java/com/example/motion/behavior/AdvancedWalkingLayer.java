@@ -1,4 +1,4 @@
-package com.example.motion.behaviour;
+package com.example.motion.behavior;
 
 import com.example.motion.interfaces.IMotionLayer;
 import com.example.motion.model.*;
