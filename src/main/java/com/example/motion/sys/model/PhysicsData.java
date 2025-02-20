@@ -31,12 +31,4 @@ public class PhysicsData {
     public float getDeltaTime() { return deltaTime; }
     public Vector3D getVelocity() { return velocity; }
     public Vector3D getAcceleration() { return acceleration; }
-
-    @Override
-    public String toString() {
-        return String.format(
-            "PhysicsData(pos=%s, rot=%s, speed=%.2f, dt=%.3f, vel=%s, acc=%s)",
-            position, rotation, speed, deltaTime, velocity, acceleration
-        );
-    }
 }

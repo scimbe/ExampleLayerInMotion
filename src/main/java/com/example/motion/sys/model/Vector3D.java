@@ -67,11 +67,6 @@ public class Vector3D {
     }
 
     @Override
-    public String toString() {
-        return String.format("Vector3D(%.2f, %.2f, %.2f)", x, y, z);
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;

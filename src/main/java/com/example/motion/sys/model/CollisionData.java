@@ -1,30 +1,16 @@
 package com.example.motion.sys.model;
 
+import lombok.Getter;
+
+@Getter
 public class CollisionData {
-    private double x;
-    private double y;
-    private double z;
-    private double radius;
+    private final Position point;
+    private final Vector3D normal;
+    private final float depth;
 
-    public CollisionData() {}
-
-    public CollisionData(double x, double y, double z, double radius) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.radius = radius;
+    public CollisionData(Position point, Vector3D normal, float depth) {
+        this.point = point;
+        this.normal = normal;
+        this.depth = depth;
     }
-
-    // Getters and setters
-    public double getX() { return x; }
-    public void setX(double x) { this.x = x; }
-
-    public double getY() { return y; }
-    public void setY(double y) { this.y = y; }
-
-    public double getZ() { return z; }
-    public void setZ(double z) { this.z = z; }
-
-    public double getRadius() { return radius; }
-    public void setRadius(double radius) { this.radius = radius; }
 }

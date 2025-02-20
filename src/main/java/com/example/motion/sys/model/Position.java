@@ -17,9 +17,4 @@ public class Position {
     public float getX() { return x; }
     public float getY() { return y; }
     public float getZ() { return z; }
-
-    @Override
-    public String toString() {
-        return String.format("Position(x=%.2f, y=%.2f, z=%.2f)", x, y, z);
-    }
 }
