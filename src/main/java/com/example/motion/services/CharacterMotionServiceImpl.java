@@ -9,9 +9,12 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
 /**
  * Implementierung des Character Motion Service mit Layer-Management.
  */
+@Service
 public class CharacterMotionServiceImpl implements ICharacterMotionService {
 
     private final IMotionDataRepository repository;
