@@ -227,6 +227,7 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
         if (playback != null) {
             repository.saveMotionState(characterId, getMotionState(characterId));
         }
+        shutdownAnimator(); // Pe579
     }
 
     private void updateCharacterState(UUID characterId, MotionState newState) {
@@ -276,5 +277,9 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
         public MotionState getBaseState() { return baseState; }
         public float getSpeed() { return speed; }
         public long getStartTime() { return startTime; }
+    }
+
+    public void shutdownAnimator() {
+        animator.shutdown();
     }
 }

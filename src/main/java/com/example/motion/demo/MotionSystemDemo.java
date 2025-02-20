@@ -49,6 +49,8 @@ public class MotionSystemDemo {
             demonstrateMotionSequence(motionService, characterId);
         } catch (Exception e) {
             System.err.println("Error during demo: " + e.getMessage());
+        } finally {
+            ((CharacterMotionServiceImpl) motionService).shutdownAnimator(); // Pe84c
         }
     }
 
