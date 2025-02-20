@@ -1,0 +1,62 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Run MotionSystemDemo",
+            "request": "launch",
+            "mainClass": "com.example.motion.demo.MotionSystemDemo",
+            "projectName": "motion-system",
+            "env": {
+                "JAVA_OPTS": "-Xms512m -Xmx1024m"
+            },
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Run LayerSwitchingDemo",
+            "request": "launch",
+            "mainClass": "com.example.motion.demo.LayerSwitchingDemo",
+            "projectName": "motion-system",
+            "env": {
+                "JAVA_OPTS": "-Xms512m -Xmx1024m"
+            },
+            "args": []
+        },
+        {
+            "type": "java",
+            "name": "Debug Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Run All Tests",
+            "request": "launch",
+            "mainClass": "org.junit.platform.console.ConsoleLauncher",
+            "args": [
+                "--scan-classpath",
+                "--include-engine", "junit-jupiter",
+                "--details", "verbose"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Debug Current Test",
+            "request": "launch",
+            "mainClass": "org.junit.platform.console.ConsoleLauncher",
+            "args": [
+                "--select-class", "${fileBasenameNoExtension}"
+            ]
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Demo Apps",
+            "configurations": [
+                "Run MotionSystemDemo",
+                "Run LayerSwitchingDemo"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,23 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.format.settings.url": ".vscode/java-formatter.xml",
+    "java.format.settings.profile": "GoogleStyle",
+    "java.test.config": {
+        "workingDirectory": "${workspaceFolder}",
+        "vmargs": [
+            "-Xmx512m"
+        ]
+    },
+    "java.debug.settings.hotCodeReplace": "auto",
+    "java.completion.importOrder": [
+        "java",
+        "javax",
+        "com",
+        "org"
+    ],
+    "editor.rulers": [100],
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+}
