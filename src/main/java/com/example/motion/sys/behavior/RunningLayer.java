@@ -10,11 +10,8 @@ import java.util.UUID;
 public class RunningLayer implements IMotionLayer {
 
     private static final float RUNNING_SPEED = 3.0f;
-
     private static final float ACCELERATION = 2.0f;
-
     private static final float MAX_STAMINA = 100.0f;
-
     private float currentStamina = MAX_STAMINA;
 
     @Override
@@ -58,6 +55,7 @@ public class RunningLayer implements IMotionLayer {
         return null; // Dummy-Implementierung
     }
 
+    @Override
     public MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
         // Physik mit Trägheit und Beschleunigung
         float speed = physicsData.getSpeed();
@@ -70,39 +68,5 @@ public class RunningLayer implements IMotionLayer {
                 physicsData.getPosition(),
                 physicsData.getRotation(),
                 speed);
-    }
-
-    @Override
-    public boolean validateMotionState(MotionState motionState) {
-        return motionState.getSpeed() <= RUNNING_SPEED && currentStamina > 0;
-    }
-
-    public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
-        // Ähnlich wie BasicWalkingLayer, aber mit Berücksichtigung der höheren Geschwindigkeit
-        Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(),
-                factor);
-        Rotation interpolatedRot = interpolateRotation(start.getRotation(), end.getRotation(),
-                factor);
-        float interpolatedSpeed = start.getSpeed() + (end.getSpeed() - start.getSpeed()) * factor;
-
-        return new MotionState(
-                start.getCharacterId(),
-                interpolatedPos,
-                interpolatedRot,
-                interpolatedSpeed);
-    }
-
-    private Position interpolatePosition(Position start, Position end, float factor) {
-        return new Position(
-                start.getX() + (end.getX() - start.getX()) * factor,
-                start.getY() + (end.getY() - start.getY()) * factor,
-                start.getZ() + (end.getZ() - start.getZ()) * factor);
-    }
-
-    private Rotation interpolateRotation(Rotation start, Rotation end, float factor) {
-        return new Rotation(
-                start.getPitch() + (end.getPitch() - start.getPitch()) * factor,
-                start.getYaw() + (end.getYaw() - start.getYaw()) * factor,
-                start.getRoll() + (end.getRoll() - start.getRoll()) * factor);
     }
 }
