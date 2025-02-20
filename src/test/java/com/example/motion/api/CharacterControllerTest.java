@@ -1,7 +1,7 @@
 package com.example.motion.api;
 
 import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.model.*;
+import com.example.motion.sys.model.*;
 import com.example.motion.api.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

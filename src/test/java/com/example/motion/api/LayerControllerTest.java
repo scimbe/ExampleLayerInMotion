@@ -1,8 +1,8 @@
 package com.example.motion.api;
 
 import com.example.motion.interfaces.ICharacterMotionService;
-import com.example.motion.interfaces.IMotionLayer;
-import com.example.motion.layers.BasicWalkingLayer;
+import com.example.motion.sys.behavior.IMotionLayer;
+import com.example.motion.sys.behavior.BasicWalkingLayer;
 import com.example.motion.api.dto.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
