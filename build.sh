@@ -40,13 +40,6 @@ check_requirements() {
     fi
     log_info "Maven gefunden: $(mvn --version | head -n 1)"
 
-    # Prüfe Docker
-    if ! command -v docker &> /dev/null; then
-        log_error "Docker ist nicht installiert"
-        exit 1
-    fi
-    log_info "Docker gefunden: $(docker --version)"
-
     # Prüfe Java
     if ! command -v java &> /dev/null; then
         log_error "Java ist nicht installiert"
@@ -56,6 +49,15 @@ check_requirements() {
 
     # Prüfe SonarScanner
     check_sonar_scanner
+
+    # Prüfe Docker (optional)
+    if command -v docker &> /dev/null; then
+        DOCKER_AVAILABLE=1
+        log_info "Docker gefunden: $(docker --version)"
+    else
+        DOCKER_AVAILABLE=0
+        log_warn "Docker ist nicht installiert. Docker-bezogene Schritte werden übersprungen."
+    fi
 }
 
 # SonarScanner Installation prüfen und ggf. durchführen
@@ -111,14 +113,12 @@ check_sonar_server() {
 build_project() {
     log_info "Starte Maven Build..."
 
-    # Clean und Build
     if ! mvn clean compile; then
         log_error "Maven Build fehlgeschlagen"
         exit 1
     fi
     log_info "Maven Build erfolgreich"
 
-    # Tests ausführen
     log_info "Führe Tests aus..."
     if ! mvn test; then
         log_error "Tests fehlgeschlagen"
@@ -126,7 +126,6 @@ build_project() {
     fi
     log_info "Tests erfolgreich"
 
-    # JaCoCo Report erstellen
     log_info "Erstelle JaCoCo Report..."
     if ! mvn jacoco:report; then
         log_error "JaCoCo Report Erstellung fehlgeschlagen"
@@ -134,7 +133,6 @@ build_project() {
     fi
     log_info "JaCoCo Report erstellt"
 
-    # Paket erstellen
     log_info "Erstelle JAR-Archiv..."
     if ! mvn package assembly:single -DskipTests; then
         log_error "Paketerstellung fehlgeschlagen"
@@ -180,6 +178,11 @@ run_sonar_analysis() {
 
 # Docker Image bauen
 build_docker_image() {
+    if [ $DOCKER_AVAILABLE -eq 0 ]; then
+        log_warn "Docker nicht verfügbar. Überspringe Docker Build."
+        return
+    fi
+
     local image_name="motion-system"
     local image_tag="latest"
 
@@ -191,7 +194,6 @@ build_docker_image() {
     fi
     log_info "Docker Image erfolgreich erstellt"
 
-    # Modifizierter Docker Image Test
     log_info "Teste Docker Image..."
     if ! docker run --rm --entrypoint java "${image_name}:${image_tag}" -version; then
         log_error "Docker Image Java-Versionstest fehlgeschlagen"
@@ -204,7 +206,6 @@ build_docker_image() {
 cleanup() {
     log_info "Räume temporäre Dateien auf..."
 
-    # Liste der zu löschenden Verzeichnisse
     local dirs_to_clean=(
         "target"
         "$HOME/.m2/repository/com/example/motion-system"
@@ -219,33 +220,13 @@ cleanup() {
     done
 }
 
-# Hilfe-Funktion
-show_help() {
-    echo "Verwendung: $0 [Optionen]"
-    echo
-    echo "Optionen:"
-    echo "  -h, --help          Diese Hilfe anzeigen"
-    echo "  -c, --clean         Nur Aufräumen durchführen"
-    echo "  -b, --build         Nur Build durchführen"
-    echo "  -s, --sonar         Nur SonarQube-Analyse durchführen"
-    echo "  -d, --docker        Nur Docker-Image erstellen"
-    echo "  -a, --all           Alles ausführen (Standard)"
-    echo
-    echo "Umgebungsvariablen:"
-    echo "  SONAR_HOST_URL     SonarQube-Server URL (Standard: http://localhost:9000)"
-    echo "  SONAR_TOKEN        SonarQube Authentication Token"
-    echo "  SONAR_PROJECT_KEY  SonarQube Projekt-Key (Standard: com.example:motion-system)"
-}
-
 # Hauptfunktion
 main() {
-    # Parameter verarbeiten
     local do_clean=0
     local do_build=0
     local do_sonar=0
     local do_docker=0
 
-    # Wenn keine Parameter übergeben wurden, alles ausführen
     if [ $# -eq 0 ]; then
         do_clean=1
         do_build=1
@@ -253,7 +234,6 @@ main() {
         do_docker=1
     fi
 
-    # Parameter auswerten
     while [ "$1" != "" ]; do
         case $1 in
             -h | --help )    show_help
@@ -279,21 +259,17 @@ main() {
         shift
     done
 
-    # Start-Zeit speichern
     local start_time=$(date +%s)
 
     log_info "Starte Build-Prozess..."
 
-    # Prüfe Voraussetzungen
     check_requirements
 
-    # Ausführung der gewählten Aktionen
     [ $do_clean -eq 1 ] && cleanup
     [ $do_build -eq 1 ] && build_project
     [ $do_sonar -eq 1 ] && run_sonar_analysis
     [ $do_docker -eq 1 ] && build_docker_image
 
-    # Ende-Zeit und Dauer berechnen
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
