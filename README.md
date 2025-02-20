@@ -54,6 +54,15 @@ Das Character Motion System implementiert eine dreischichtige Architektur zur Ve
 
 2. Sie sollten eine animierte Oberfläche sehen, die Bewegung, den Wechsel der Motion Layer und die Koordinaten auf einem Gitter anzeigt.
 
+### Zugriff auf die Motion Behavior Demo
+
+1. Öffnen Sie Ihren Webbrowser und navigieren Sie zu:
+   ```
+   http://localhost:8080/demo-motion
+   ```
+
+2. Sie sollten eine Nachricht sehen, die den erfolgreichen Abschluss der Motion Behavior Demo anzeigt.
+
 ## SonarQube Integration
 
 ### Lokale Einrichtung
