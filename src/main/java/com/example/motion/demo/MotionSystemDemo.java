@@ -10,7 +10,6 @@ import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -100,9 +99,9 @@ public class MotionSystemDemo {
         repository.saveAnimationData("basic_walk", walkAnimation);
     }
 
-    private static void demonstrateMotionSequence(ICharacterMotionService service, UUID characterId) 
+    private static void demonstrateMotionSequence(ICharacterMotionService service, UUID characterId)
             throws InterruptedException {
-        
+
         System.out.println("Starting motion demonstration...");
 
         // Idle-Animation abspielen

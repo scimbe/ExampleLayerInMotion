@@ -9,7 +9,6 @@ import com.example.motion.model.*;
 import com.example.motion.services.CharacterMotionServiceImpl;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Demonstriert den dynamischen Wechsel zwischen verschiedenen Motion Layers.
@@ -21,18 +20,18 @@ public class LayerSwitchingDemo {
             // Initialisierung
             IMotionDataRepository repository = new InMemoryMotionDataRepository();
             ICharacterMotionService motionService = new CharacterMotionServiceImpl(repository);
-            
+
             // Layer erstellen
             BasicWalkingLayer basicLayer = new BasicWalkingLayer();
             AdvancedWalkingLayer advancedLayer = new AdvancedWalkingLayer();
-            
+
             // Testcharakter erstellen
             UUID characterId = UUID.randomUUID();
-            
+
             // Bewegungs-Callback für Statusausgaben
             motionService.registerMotionCallback(characterId, (id, state) -> {
-                System.out.printf("Position: %s, Speed: %.2f%n", 
-                    state.getPosition(), state.getSpeed());
+                System.out.printf("Position: %s, Speed: %.2f%n",
+                        state.getPosition(), state.getSpeed());
             });
 
             // Demo-Sequenz ausführen
@@ -49,13 +48,13 @@ public class LayerSwitchingDemo {
             UUID characterId,
             BasicWalkingLayer basicLayer,
             AdvancedWalkingLayer advancedLayer) throws InterruptedException {
-        
+
         Direction walkDirection = new Direction(new Vector3D(1, 0, 0));
 
         // Start mit Basic Layer
         System.out.println("\n=== Starting with Basic Walking Layer ===");
         service.addMotionLayer(basicLayer, 1);
-        
+
         // Normale Gehbewegung demonstrieren
         service.setMovementDirection(characterId, walkDirection, 0.5f).join();
         Thread.sleep(2000);
@@ -91,19 +90,12 @@ public class LayerSwitchingDemo {
         System.out.println("\n=== Switching back to Basic Walking Layer ===");
         service.removeMotionLayer(advancedLayer);
         service.addMotionLayer(basicLayer, 1);
-        
+
         // Finale Bewegung
         service.setMovementDirection(characterId, walkDirection, 0.5f).join();
         Thread.sleep(2000);
-        
+
         service.stopMotion(characterId).join();
         System.out.println("\n=== Demo Complete ===");
-    }
-
-    /**
-     * Formatiert eine Position für die Konsolenausgabe.
-     */
-    private static String formatPosition(Position pos) {
-        return String.format("(%.2f, %.2f, %.2f)", pos.getX(), pos.getY(), pos.getZ());
     }
 }
