@@ -7,29 +7,83 @@ import com.example.motion.model.*;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
- * Implementierung des Character Motion Service mit Animation-Support.
+ * Implementierung des Character Motion Service mit Layer-Management.
  */
 public class CharacterMotionServiceImpl implements ICharacterMotionService {
     
-    private final IMotionLayer motionLayer;
     private final IMotionDataRepository repository;
     private final Map<UUID, MotionState> characterStates;
     private final Map<UUID, MotionCallback> motionCallbacks;
     private final Map<UUID, AnimationPlayback> activeAnimations;
+    private final Map<IMotionLayer, Integer> motionLayers;
     private final ScheduledExecutorService animator;
+    private final ReentrantReadWriteLock layerLock;
 
     /**
      * Konstruktor für den Character Motion Service.
      */
-    public CharacterMotionServiceImpl(IMotionLayer motionLayer, IMotionDataRepository repository) {
-        this.motionLayer = motionLayer;
+    public CharacterMotionServiceImpl(IMotionDataRepository repository) {
         this.repository = repository;
         this.characterStates = new ConcurrentHashMap<>();
         this.motionCallbacks = new ConcurrentHashMap<>();
         this.activeAnimations = new ConcurrentHashMap<>();
+        this.motionLayers = new ConcurrentHashMap<>();
         this.animator = Executors.newScheduledThreadPool(1);
+        this.layerLock = new ReentrantReadWriteLock();
+    }
+
+    @Override
+    public boolean addMotionLayer(IMotionLayer layer, int priority) {
+        try {
+            layerLock.writeLock().lock();
+            if (motionLayers.containsKey(layer)) {
+                return false;
+            }
+            motionLayers.put(layer, priority);
+            return true;
+        } finally {
+            layerLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean removeMotionLayer(IMotionLayer layer) {
+        try {
+            layerLock.writeLock().lock();
+            return motionLayers.remove(layer) != null;
+        } finally {
+            layerLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public boolean updateLayerPriority(IMotionLayer layer, int priority) {
+        try {
+            layerLock.writeLock().lock();
+            if (!motionLayers.containsKey(layer)) {
+                return false;
+            }
+            motionLayers.put(layer, priority);
+            return true;
+        } finally {
+            layerLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public List<IMotionLayer> getActiveLayers() {
+        try {
+            layerLock.readLock().lock();
+            return motionLayers.entrySet().stream()
+                .sorted(Map.Entry.<IMotionLayer, Integer>comparingByValue().reversed())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        } finally {
+            layerLock.readLock().unlock();
+        }
     }
 
     @Override
@@ -37,14 +91,11 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                                                        String animationId, 
                                                        float speed) {
         return CompletableFuture.supplyAsync(() -> {
-            // Lade Animation aus Repository
             AnimationData animation = repository.getAnimationData(animationId)
                 .orElseThrow(() -> new IllegalArgumentException("Animation nicht gefunden: " + animationId));
 
-            // Hole aktuellen Zustand
             MotionState currentState = getOrCreateMotionState(characterId);
-
-            // Erstelle neue Animation Playback
+            
             AnimationPlayback playback = new AnimationPlayback(
                 animation,
                 currentState,
@@ -52,10 +103,8 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 System.currentTimeMillis()
             );
 
-            // Stoppe aktive Animation falls vorhanden
             stopActiveAnimation(characterId);
-
-            // Starte neue Animation
+            
             activeAnimations.put(characterId, playback);
             scheduleAnimationUpdates(characterId, playback);
 
@@ -69,8 +118,6 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                                                               float speed) {
         return CompletableFuture.supplyAsync(() -> {
             MotionState currentState = getOrCreateMotionState(characterId);
-            
-            // Erstelle neuen Zustand mit aktualisierter Richtung
             MotionState newState = new MotionState(
                 characterId,
                 currentState.getPosition(),
@@ -78,14 +125,30 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 speed
             );
             
-            // Validiere und prüfe auf Kollisionen
-            if (motionLayer.validateMotionState(newState) && 
-                motionLayer.checkCollision(characterId, newState) == null) {
+            // Verarbeite Zustand durch alle Layer
+            try {
+                layerLock.readLock().lock();
+                MotionState processedState = newState;
+                for (IMotionLayer layer : getActiveLayers()) {
+                    // Validiere und verarbeite den Zustand
+                    if (layer.validateMotionState(processedState)) {
+                        processedState = layer.processMotion(
+                            characterId, 
+                            processedState, 
+                            1.0f/60.0f
+                        );
+                    }
+                    
+                    // Prüfe auf Kollisionen
+                    if (layer.checkCollision(characterId, processedState) != null) {
+                        throw new IllegalStateException("Kollision erkannt");
+                    }
+                }
                 
-                updateCharacterState(characterId, newState);
-                return newState;
-            } else {
-                throw new IllegalStateException("Ungültiger Bewegungszustand oder Kollision");
+                updateCharacterState(characterId, processedState);
+                return processedState;
+            } finally {
+                layerLock.readLock().unlock();
             }
         });
     }
@@ -120,46 +183,55 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                     return;
                 }
 
-                // Berechne aktuelle Animationszeit
                 float currentTime = (System.currentTimeMillis() - playback.getStartTime()) / 1000.0f * playback.getSpeed();
-
-                // Interpoliere neuen Zustand
-                MotionState newState = playback.getAnimation().interpolateAtTime(
+                
+                // Interpoliere Animationszustand
+                MotionState animatedState = playback.getAnimation().interpolateAtTime(
                     currentTime, 
                     playback.getBaseState()
                 );
 
-                // Validiere und aktualisiere
-                if (motionLayer.validateMotionState(newState)) {
-                    updateCharacterState(characterId, newState);
-
-                    // Prüfe ob Animation beendet ist
-                    if (!playback.getAnimation().isLooping() && 
-                        currentTime >= playback.getAnimation().getDuration()) {
-                        stopActiveAnimation(characterId);
+                // Verarbeite durch alle Layer
+                try {
+                    layerLock.readLock().lock();
+                    MotionState processedState = animatedState;
+                    for (IMotionLayer layer : getActiveLayers()) {
+                        if (layer.validateMotionState(processedState)) {
+                            processedState = layer.processMotion(
+                                characterId, 
+                                processedState, 
+                                1.0f/60.0f
+                            );
+                        }
                     }
+                    
+                    updateCharacterState(characterId, processedState);
+                } finally {
+                    layerLock.readLock().unlock();
+                }
+
+                // Prüfe Animation Ende
+                if (!playback.getAnimation().isLooping() && 
+                    currentTime >= playback.getAnimation().getDuration()) {
+                    stopActiveAnimation(characterId);
                 }
             } catch (Exception e) {
-                // Log error in production environment
                 stopActiveAnimation(characterId);
             }
-        }, 0, 16, TimeUnit.MILLISECONDS); // 60 FPS Update-Rate
+        }, 0, 16, TimeUnit.MILLISECONDS);
     }
 
     private void stopActiveAnimation(UUID characterId) {
         AnimationPlayback playback = activeAnimations.remove(characterId);
         if (playback != null) {
-            // Optional: Finale Animation State speichern
             repository.saveMotionState(characterId, getMotionState(characterId));
         }
     }
 
     private void updateCharacterState(UUID characterId, MotionState newState) {
-        // Speichere Zustand
         characterStates.put(characterId, newState);
         repository.saveMotionState(characterId, newState);
         
-        // Benachrichtige Callback
         MotionCallback callback = motionCallbacks.get(characterId);
         if (callback != null) {
             callback.onMotionUpdate(characterId, newState);
