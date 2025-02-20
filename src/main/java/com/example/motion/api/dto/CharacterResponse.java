@@ -1,11 +1,11 @@
 package com.example.motion.api.dto;
 
 import com.example.motion.model.MotionState;
-import lombok.Data;
+import lombok.Getter;
 
 import java.util.UUID;
 
-@Data
+@Getter
 public class CharacterResponse {
     private final UUID characterId;
     private final float x;

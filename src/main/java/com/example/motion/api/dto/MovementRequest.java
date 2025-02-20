@@ -1,8 +1,10 @@
 package com.example.motion.api.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class MovementRequest {
     private float directionX;
     private float directionY;

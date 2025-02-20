@@ -1,8 +1,10 @@
 package com.example.motion.api.dto;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class AnimationRequest {
     private String animationId;
     private float speed;
