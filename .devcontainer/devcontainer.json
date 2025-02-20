@@ -57,7 +57,6 @@
     },
     "postCreateCommand": "mvn install -DskipTests -Dsonar.skip=true",
     "remoteEnv": {
-        "JAVA_HOME": "/usr/lib/jvm/msopenjdk-17",
         "MAVEN_HOME": "/usr/share/maven"
     }
 }
