@@ -6,6 +6,7 @@ import com.example.motion.sys.model.MotionState;
 import com.example.motion.sys.model.Position;
 import com.example.motion.sys.model.Rotation;
 import com.example.motion.sys.model.Direction;
+import com.example.motion.sys.model.AnimationData;
 
 import java.util.*;
 import java.util.concurrent.*;
