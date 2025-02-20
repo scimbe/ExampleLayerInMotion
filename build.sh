@@ -28,7 +28,7 @@ log_error() {
 # Prüfe ob notwendige Tools installiert sind
 check_requirements() {
     log_info "Prüfe Systemvoraussetzungen..."
-    
+
     # Prüfe Maven
     if ! command -v mvn &> /dev/null; then
         log_error "Maven ist nicht installiert"
@@ -76,21 +76,20 @@ install_sonar_scanner() {
   esac
 
   local download_url="https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-${os_type}.zip"
-  local temp_dir=$(mktemp -d -t sonar-scanner) # Korrigierte Zeile
-  
+  local temp_dir=$(mktemp -d -t sonar-scanner-XXXXXX)
+
   log_info "Lade SonarScanner herunter..."
   curl -L "$download_url" -o "$temp_dir/sonar-scanner.zip"
-  
+
   log_info "Installiere SonarScanner..."
   unzip -q "$temp_dir/sonar-scanner.zip" -d "$temp_dir"
   mkdir -p "$HOME/.sonar"
-  mv "$temp_dir/sonar-scanner-$SONAR_SCANNER_VERSION-$os_type" "$SONAR_SCANNER_DIR"
+  mv "$temp_dir/sonar-scanner-${SONAR_SCANNER_VERSION}-${os_type}" "$SONAR_SCANNER_DIR"
   rm -rf "$temp_dir"
-  
+
   log_info "SonarScanner Installation abgeschlossen"
 }
 
-# Prüfe SonarQube-Server
 # Prüfe SonarQube-Server
 check_sonar_server() {
   log_info "Prüfe SonarQube-Server..."
@@ -107,7 +106,7 @@ check_sonar_server() {
 # Maven Build
 build_project() {
     log_info "Starte Maven Build..."
-    
+
     # Clean und Build
     if ! mvn clean compile; then
         log_error "Maven Build fehlgeschlagen"
@@ -145,15 +144,15 @@ run_sonar_analysis() {
     if ! check_sonar_server; then
         log_warn "Überspringe SonarQube-Analyse"
         return
-    }
+    fi
 
     log_info "Starte SonarQube-Analyse..."
-    
+
     if [ -z "$SONAR_TOKEN" ]; then
         log_error "SONAR_TOKEN nicht gesetzt"
         log_info "Bitte setzen Sie die Umgebungsvariable SONAR_TOKEN"
         return 1
-    }
+    fi
 
     sonar-scanner \
         -Dsonar.host.url="$SONAR_HOST_URL" \
@@ -179,9 +178,9 @@ run_sonar_analysis() {
 build_docker_image() {
     local image_name="motion-system"
     local image_tag="latest"
-    
+
     log_info "Baue Docker Image ${image_name}:${image_tag}..."
-    
+
     if ! docker build -t "${image_name}:${image_tag}" .; then
         log_error "Docker Build fehlgeschlagen"
         exit 1
@@ -200,14 +199,14 @@ build_docker_image() {
 # Aufräumen
 cleanup() {
     log_info "Räume temporäre Dateien auf..."
-    
+
     # Liste der zu löschenden Verzeichnisse
     local dirs_to_clean=(
         "target"
-        ".m2/repository/com/example/motion-system"
-        ".sonar/cache"
+        "$HOME/.m2/repository/com/example/motion-system"
+        "$HOME/.sonar/cache"
     )
-    
+
     for dir in "${dirs_to_clean[@]}"; do
         if [ -d "$dir" ]; then
             rm -rf "$dir"
@@ -224,9 +223,9 @@ show_help() {
     echo "  -h, --help          Diese Hilfe anzeigen"
     echo "  -c, --clean         Nur Aufräumen durchführen"
     echo "  -b, --build         Nur Build durchführen"
-    echo "  -s, --sonar        Nur SonarQube-Analyse durchführen"
-    echo "  -d, --docker       Nur Docker-Image erstellen"
-    echo "  -a, --all          Alles ausführen (Standard)"
+    echo "  -s, --sonar         Nur SonarQube-Analyse durchführen"
+    echo "  -d, --docker        Nur Docker-Image erstellen"
+    echo "  -a, --all           Alles ausführen (Standard)"
     echo
     echo "Umgebungsvariablen:"
     echo "  SONAR_HOST_URL     SonarQube-Server URL (Standard: http://localhost:9000)"
@@ -275,25 +274,25 @@ main() {
         esac
         shift
     done
-    
+
     # Start-Zeit speichern
     local start_time=$(date +%s)
-    
+
     log_info "Starte Build-Prozess..."
-    
+
     # Prüfe Voraussetzungen
     check_requirements
-    
+
     # Ausführung der gewählten Aktionen
     [ $do_clean -eq 1 ] && cleanup
     [ $do_build -eq 1 ] && build_project
     [ $do_sonar -eq 1 ] && run_sonar_analysis
     [ $do_docker -eq 1 ] && build_docker_image
-    
+
     # Ende-Zeit und Dauer berechnen
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
+
     log_info "Build erfolgreich abgeschlossen in ${duration} Sekunden"
 }
 
