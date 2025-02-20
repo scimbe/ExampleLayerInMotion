@@ -2,7 +2,10 @@ package com.example.motion.services;
 
 import com.example.motion.sys.behavior.IMotionLayer;
 import com.example.motion.sys.data.IMotionDataRepository;
-import com.example.motion.sys.model.*;
+import com.example.motion.sys.model.MotionState;
+import com.example.motion.sys.model.Position;
+import com.example.motion.sys.model.Rotation;
+import com.example.motion.sys.model.Direction;
 
 import java.util.*;
 import java.util.concurrent.*;
