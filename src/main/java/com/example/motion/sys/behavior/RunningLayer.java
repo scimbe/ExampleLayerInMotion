@@ -58,7 +58,6 @@ public class RunningLayer implements IMotionLayer {
         return null; // Dummy-Implementierung
     }
 
-    @Override
     public MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
         // Physik mit Trägheit und Beschleunigung
         float speed = physicsData.getSpeed();
@@ -78,7 +77,6 @@ public class RunningLayer implements IMotionLayer {
         return motionState.getSpeed() <= RUNNING_SPEED && currentStamina > 0;
     }
 
-    @Override
     public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
         // Ähnlich wie BasicWalkingLayer, aber mit Berücksichtigung der höheren Geschwindigkeit
         Position interpolatedPos = interpolatePosition(start.getPosition(), end.getPosition(),

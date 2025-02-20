@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import com.example.motion.sys.model.Direction;
+import com.example.motion.sys.model.Vector3D;
+
 @RestController
 @RequestMapping("/api/v1/characters")
 @Tag(name = "Character Controller", description = "API zur Steuerung von Charakteren")

@@ -49,7 +49,6 @@ public class IdleLayer implements IMotionLayer {
                 return null; // Dummy-Implementierung
         }
 
-        @Override
         public MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
                 // Grundlegende Physik für stehende Position
                 return new MotionState(
@@ -65,7 +64,6 @@ public class IdleLayer implements IMotionLayer {
                 return motionState.getSpeed() == 0.0f;
         }
 
-        @Override
         public MotionState interpolateStates(MotionState start, MotionState end, float factor) {
                 // Sanfte Interpolation für Idle-Animationen
                 Position interpolatedPos = interpolatePosition(start.getPosition(),
