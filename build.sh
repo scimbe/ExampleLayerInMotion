@@ -91,15 +91,17 @@ install_sonar_scanner() {
 }
 
 # Prüfe SonarQube-Server
+# Prüfe SonarQube-Server
 check_sonar_server() {
-    log_info "Prüfe SonarQube-Server..."
-    if ! curl -s "$SONAR_HOST_URL/api/system/status" | grep -q '"status":"UP"'; then
-        log_error "SonarQube-Server nicht erreichbar: $SONAR_HOST_URL"
-        log_info "Stelle sicher, dass der Server läuft und erreichbar ist"
-        return 1
-    fi
+  log_info "Prüfe SonarQube-Server..."
+  if curl -s "$SONAR_HOST_URL/api/system/status" | grep -E '"status":"UP"' > /dev/null; then
     log_info "SonarQube-Server ist erreichbar"
     return 0
+  else
+    log_error "SonarQube-Server nicht erreichbar: $SONAR_HOST_URL"
+    log_info "Stelle sicher, dass der Server läuft und erreichbar ist"
+    return 1
+  fi
 }
 
 # Maven Build
