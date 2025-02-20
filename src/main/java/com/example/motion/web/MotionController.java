@@ -5,6 +5,7 @@ import com.example.motion.sys.behavior.AdvancedWalkingLayer;
 import com.example.motion.sys.behavior.BasicWalkingLayer;
 import com.example.motion.sys.model.Direction;
 import com.example.motion.sys.model.Vector3D;
+import com.example.motion.sys.model.MotionState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -68,5 +69,27 @@ public class MotionController {
         } catch (Exception e) {
             return "Error during motion behavior demo: " + e.getMessage();
         }
+    }
+
+    @GetMapping("/current-position")
+    public String getCurrentPosition() {
+        try {
+            UUID characterId = UUID.randomUUID();
+            MotionState currentState = motionService.getMotionState(characterId);
+            return formatPositionInGrid(currentState);
+        } catch (Exception e) {
+            return "Error retrieving current position: " + e.getMessage();
+        }
+    }
+
+    private String formatPositionInGrid(MotionState state) {
+        StringBuilder grid = new StringBuilder();
+        grid.append("Current Position:\n");
+        grid.append(String.format("Position(x=%.2f, y=%.2f, z=%.2f), Speed: %.2f\n",
+                state.getPosition().getX(),
+                state.getPosition().getY(),
+                state.getPosition().getZ(),
+                state.getSpeed()));
+        return grid.toString();
     }
 }

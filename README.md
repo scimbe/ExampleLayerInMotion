@@ -63,6 +63,15 @@ Das Character Motion System implementiert eine dreischichtige Architektur zur Ve
 
 2. Sie sollten eine Nachricht sehen, die den erfolgreichen Abschluss der Motion Behavior Demo anzeigt.
 
+### Zugriff auf die aktuelle Position
+
+1. Öffnen Sie Ihren Webbrowser und navigieren Sie zu:
+   ```
+   http://localhost:8080/current-position
+   ```
+
+2. Sie sollten die aktuelle Position und Geschwindigkeit des Charakters in einem Gitterformat sehen.
+
 ## SonarQube Integration
 
 ### Lokale Einrichtung
