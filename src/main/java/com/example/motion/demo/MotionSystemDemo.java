@@ -142,5 +142,6 @@ public class MotionSystemDemo {
         Thread.sleep(1000);
 
         System.out.println("\nDemonstration complete!");
+        System.exit(0);
     }
 }
