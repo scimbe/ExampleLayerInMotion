@@ -22,7 +22,7 @@ public class LayerController {
 
     private final ICharacterMotionService motionService;
 
-    public LayerController(ICharacterMotionService motionService) {
+    public LayerController(ICharacterMotionService(ICharacterMotionService motionService) {
         this.motionService = motionService;
     }
 
@@ -62,16 +62,16 @@ public class LayerController {
             
             boolean added = motionService.addMotionLayer(layer, request.getPriority());
             if (!added) {
-                return ResponseEntity.badRequest()
+                return ResponseEntity.status(400)
                     .body(new LayerResponse("Layer already exists", request.getClassName()));
             }
             
-            return ResponseEntity.ok(new LayerResponse(
+            return ResponseEntity.status(200).body(new LayerResponse(
                 layer.getClass().getSimpleName(),
                 request.getClassName()
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
+            return ResponseEntity.status(500)
                 .body(new LayerResponse("Error creating layer", request.getClassName()));
         }
     }
@@ -93,12 +93,12 @@ public class LayerController {
             
             boolean removed = motionService.removeMotionLayer(layer);
             if (!removed) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(404).build();
             }
             
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(200).build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(400).build();
         }
     }
 
@@ -122,21 +122,21 @@ public class LayerController {
             
             boolean updated = motionService.updateLayerPriority(layer, request.getPriority());
             if (!updated) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(404).build();
             }
             
-            return ResponseEntity.ok(new LayerResponse(
+            return ResponseEntity.status(200).body(new LayerResponse(
                 layer.getClass().getSimpleName(),
                 className
             ));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(400).build();
         }
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
-        return ResponseEntity.badRequest()
+        return ResponseEntity.status(400)
             .body(new ErrorResponse("Error processing request", e.getMessage()));
     }
 }

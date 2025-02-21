@@ -62,6 +62,7 @@ class LayerControllerTest {
         assertNotNull(response.getBody());
         assertEquals("BasicWalkingLayer", response.getBody().getName());
         assertEquals(request.getClassName(), response.getBody().getClassName());
+        assertEquals(200, response.getStatusCodeValue());
     }
 
     @Test
@@ -80,6 +81,7 @@ class LayerControllerTest {
         // Assert
         assertNotNull(response.getBody());
         assertEquals("Layer already exists", response.getBody().getName());
+        assertEquals(400, response.getStatusCodeValue());
     }
 
     @Test
