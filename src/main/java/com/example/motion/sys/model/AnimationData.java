@@ -1,129 +1,117 @@
 package com.example.motion.sys.model;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Repräsentiert die Daten einer Animation mit Keyframes und Metadaten.
+ * Repräsentiert Animation-Daten für Charakterbewegungen.
  */
 public class AnimationData {
     private final String id;
-    private final String name;
     private final float duration;
-    private final List<KeyFrame> keyFrames;
-    private final AnimationType type;
     private final boolean looping;
+    private final List<AnimationKeyframe> keyframes;
 
-    public AnimationData(String id,
-                        String name,
-                        float duration,
-                        List<KeyFrame> keyFrames,
-                        AnimationType type,
-                        boolean looping) {
+    public AnimationData(String id, float duration, boolean looping) {
         this.id = id;
-        this.name = name;
         this.duration = duration;
-        this.keyFrames = new ArrayList<>(keyFrames);
-        this.type = type;
         this.looping = looping;
+        this.keyframes = new ArrayList<>();
     }
 
-    public String getId() { return id; }
-    public String getName() { return name; }
-    public float getDuration() { return duration; }
-    public List<KeyFrame> getKeyFrames() { return new ArrayList<>(keyFrames); }
-    public AnimationType getType() { return type; }
-    public boolean isLooping() { return looping; }
+    public String getId() {
+        return id;
+    }
 
-    /**
-     * Berechnet den interpolierten Zustand zu einem bestimmten Zeitpunkt.
-     */
-    public MotionState interpolateAtTime(float time, MotionState currentState) {
-        if (keyFrames.isEmpty()) {
-            return currentState;
+    public float getDuration() {
+        return duration;
+    }
+
+    public boolean isLooping() {
+        return looping;
+    }
+
+    public void addKeyframe(AnimationKeyframe keyframe) {
+        keyframes.add(keyframe);
+    }
+
+    public MotionState interpolateAtTime(float time, MotionState baseState) {
+        if (keyframes.size() < 2) {
+            return baseState;
         }
 
-        // Handle looping animations
-        if (looping) {
+        // Für Looping-Animationen, normalisiere die Zeit
+        if (looping && time > duration) {
             time = time % duration;
         }
 
-        // Find surrounding keyframes
-        KeyFrame prevFrame = keyFrames.get(0);
-        KeyFrame nextFrame = keyFrames.get(keyFrames.size() - 1);
-
-        for (int i = 0; i < keyFrames.size() - 1; i++) {
-            if (keyFrames.get(i).getTime() <= time && keyFrames.get(i + 1).getTime() > time) {
-                prevFrame = keyFrames.get(i);
-                nextFrame = keyFrames.get(i + 1);
+        // Finde die zwei Keyframes für die aktuelle Zeit
+        AnimationKeyframe start = keyframes.get(0);
+        AnimationKeyframe end = keyframes.get(1);
+        
+        for (int i = 1; i < keyframes.size(); i++) {
+            if (keyframes.get(i).getTime() > time) {
+                start = keyframes.get(i - 1);
+                end = keyframes.get(i);
                 break;
             }
         }
 
-        // Calculate interpolation factor
-        float frameDuration = nextFrame.getTime() - prevFrame.getTime();
-        float factor = frameDuration > 0 ?
-            (time - prevFrame.getTime()) / frameDuration : 0;
+        // Berechne Interpolationsfaktor
+        float factor = (time - start.getTime()) / (end.getTime() - start.getTime());
+        factor = Math.max(0, Math.min(1, factor));
 
-        // Interpolate between frames
+        // Interpoliere Position
+        Position startPos = start.getPosition();
+        Position endPos = end.getPosition();
+        Position newPos = new Position(
+            startPos.getX() + (endPos.getX() - startPos.getX()) * factor,
+            startPos.getY() + (endPos.getY() - startPos.getY()) * factor,
+            startPos.getZ() + (endPos.getZ() - startPos.getZ()) * factor
+        );
+
+        // Interpoliere Rotation
+        Rotation startRot = start.getRotation();
+        Rotation endRot = end.getRotation();
+        Rotation newRot = new Rotation(
+            startRot.getPitch() + (endRot.getPitch() - startRot.getPitch()) * factor,
+            startRot.getYaw() + (endRot.getYaw() - startRot.getYaw()) * factor,
+            startRot.getRoll() + (endRot.getRoll() - startRot.getRoll()) * factor
+        );
+
+        // Erstelle neuen Bewegungszustand
         return new MotionState(
-            currentState.getCharacterId(),
-            interpolatePosition(prevFrame.getPosition(), nextFrame.getPosition(), factor),
-            interpolateRotation(prevFrame.getRotation(), nextFrame.getRotation(), factor),
-            currentState.getSpeed()
-        );
-    }
-
-    private Position interpolatePosition(Position start, Position end, float factor) {
-        return new Position(
-            start.getX() + (end.getX() - start.getX()) * factor,
-            start.getY() + (end.getY() - start.getY()) * factor,
-            start.getZ() + (end.getZ() - start.getZ()) * factor
-        );
-    }
-
-    private Rotation interpolateRotation(Rotation start, Rotation end, float factor) {
-        return new Rotation(
-            start.getPitch() + (end.getPitch() - start.getPitch()) * factor,
-            start.getYaw() + (end.getYaw() - start.getYaw()) * factor,
-            start.getRoll() + (end.getRoll() - start.getRoll()) * factor
+            baseState.getCharacterId(),
+            newPos,
+            newRot,
+            baseState.getSpeed()
         );
     }
 
     /**
-     * Repräsentiert einen einzelnen Keyframe in der Animation.
+     * Repräsentiert einen Keyframe in der Animation.
      */
-    public static class KeyFrame {
+    public static class AnimationKeyframe {
         private final float time;
         private final Position position;
         private final Rotation rotation;
 
-        public KeyFrame(float time, Position position, Rotation rotation) {
+        public AnimationKeyframe(float time, Position position, Rotation rotation) {
             this.time = time;
             this.position = position;
             this.rotation = rotation;
         }
 
-        public float getTime() { return time; }
-        public Position getPosition() { return position; }
-        public Rotation getRotation() { return rotation; }
-    }
+        public float getTime() {
+            return time;
+        }
 
-    /**
-     * Definiert die verschiedenen Animationstypen.
-     */
-    public enum AnimationType {
-        IDLE,
-        WALK,
-        RUN,
-        JUMP,
-        ATTACK,
-        CUSTOM
-    }
+        public Position getPosition() {
+            return position;
+        }
 
-    @Override
-    public String toString() {
-        return String.format("Animation(%s, %s, duration=%.2f, frames=%d, type=%s, looping=%b)",
-            id, name, duration, keyFrames.size(), type, looping);
+        public Rotation getRotation() {
+            return rotation;
+        }
     }
 }
