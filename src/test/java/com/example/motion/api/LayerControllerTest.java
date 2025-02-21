@@ -49,7 +49,7 @@ class LayerControllerTest {
     void addLayer_ShouldAddNewLayer() {
         // Arrange
         LayerRequest request = new LayerRequest();
-        request.setClassName("com.example.motion.layers.BasicWalkingLayer");
+        request.setClassName("com.example.motion.sys.behavior.BasicWalkingLayer");
         request.setPriority(1);
 
         when(motionService.addMotionLayer(any(IMotionLayer.class), eq(1)))
@@ -69,7 +69,7 @@ class LayerControllerTest {
     void addLayer_ShouldHandleExistingLayer() {
         // Arrange
         LayerRequest request = new LayerRequest();
-        request.setClassName("com.example.motion.layers.BasicWalkingLayer");
+        request.setClassName("com.example.motion.sys.behavior.BasicWalkingLayer");
         request.setPriority(1);
 
         when(motionService.addMotionLayer(any(IMotionLayer.class), eq(1)))
@@ -87,7 +87,7 @@ class LayerControllerTest {
     @Test
     void removeLayer_ShouldRemoveExistingLayer() {
         // Arrange
-        String className = "com.example.motion.layers.BasicWalkingLayer";
+        String className = "com.example.motion.sys.behavior.BasicWalkingLayer";
         when(motionService.removeMotionLayer(any(IMotionLayer.class)))
             .thenReturn(true);
 
@@ -101,7 +101,7 @@ class LayerControllerTest {
     @Test
     void removeLayer_ShouldHandleNonExistentLayer() {
         // Arrange
-        String className = "com.example.motion.layers.BasicWalkingLayer";
+        String className = "com.example.motion.sys.behavior.BasicWalkingLayer";
         when(motionService.removeMotionLayer(any(IMotionLayer.class)))
             .thenReturn(false);
 
@@ -115,7 +115,7 @@ class LayerControllerTest {
     @Test
     void updateLayerPriority_ShouldUpdatePriority() {
         // Arrange
-        String className = "com.example.motion.layers.BasicWalkingLayer";
+        String className = "com.example.motion.sys.behavior.BasicWalkingLayer";
         PriorityRequest request = new PriorityRequest();
         request.setPriority(2);
 
@@ -133,7 +133,7 @@ class LayerControllerTest {
     @Test
     void updateLayerPriority_ShouldHandleNonExistentLayer() {
         // Arrange
-        String className = "com.example.motion.layers.BasicWalkingLayer";
+        String className = "com.example.motion.sys.behavior.BasicWalkingLayer";
         PriorityRequest request = new PriorityRequest();
         request.setPriority(2);
 
