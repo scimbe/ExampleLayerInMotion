@@ -26,6 +26,18 @@ public class Rotation {
         return z;
     }
 
+    public float getPitch() {
+        return x;
+    }
+
+    public float getYaw() {
+        return y;
+    }
+
+    public float getRoll() {
+        return z;
+    }
+
     @Override
     public String toString() {
         return String.format("Rotation(pitch=%.2f, yaw=%.2f, roll=%.2f)", x, y, z);
