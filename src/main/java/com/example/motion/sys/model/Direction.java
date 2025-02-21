@@ -10,7 +10,6 @@ public class Direction {
 
     public Direction(float x, float y, float z) {
         float length = (float) Math.sqrt(x * x + y * y + z * z);
-        // Normalisiere den Vektor, falls er nicht Null ist
         if (length > 0.0001f) {
             this.x = x / length;
             this.y = y / length;
@@ -18,8 +17,12 @@ public class Direction {
         } else {
             this.x = 0;
             this.y = 0;
-            this.z = 1; // Standardrichtung nach vorne
+            this.z = 1;
         }
+    }
+
+    public Direction(Vector3D vector) {
+        this(vector.getX(), vector.getY(), vector.getZ());
     }
 
     public float getX() {
@@ -34,10 +37,6 @@ public class Direction {
         return z;
     }
 
-    /**
-     * Konvertiert die Richtung in eine Rotation.
-     * Berechnet nur die Y-Rotation (Yaw), da dies für die meisten Bewegungen ausreicht.
-     */
     public Rotation toRotation() {
         float yaw = (float) Math.toDegrees(Math.atan2(x, z));
         return new Rotation(0, yaw, 0);
