@@ -1,46 +1,37 @@
 package com.example.motion.sys.behavior;
 
+import com.example.motion.sys.model.MotionState;
 import java.util.UUID;
 
-import com.example.motion.sys.model.CollisionData;
-import com.example.motion.sys.model.MotionState;
-import com.example.motion.sys.model.PhysicsData;
-
 /**
- * Interface für die Logik-Schicht der Bewegungsverarbeitung.
- * Verarbeitet Bewegungsberechnungen und Physik.
+ * Interface für Motion Layer.
+ * Definiert die grundlegenden Operationen für die Verarbeitung von Bewegungen.
  */
 public interface IMotionLayer {
-
+    
     /**
-     * Verarbeitet Bewegungsdaten und berechnet den nächsten Zustand.
+     * Verarbeitet den aktuellen Bewegungszustand und berechnet den nächsten Zustand.
      *
-     * @param characterId Die ID des Charakters
-     * @param currentState Der aktuelle Bewegungszustand
-     * @param deltaTime Die vergangene Zeit seit dem letzten Update
-     * @return Der neue Bewegungszustand
+     * @param characterId ID des Charakters
+     * @param currentState Aktueller Bewegungszustand
+     * @param deltaTime Vergangene Zeit seit letztem Update in Sekunden
+     * @return Neuer Bewegungszustand
      */
-    MotionState processMotion(UUID characterId,
-                            MotionState currentState,
-                            float deltaTime);
-
+    MotionState processMotion(UUID characterId, MotionState currentState, float deltaTime);
+    
     /**
-     * Führt eine Kollisionsprüfung durch.
+     * Prüft auf Kollisionen für einen vorgeschlagenen Bewegungszustand.
      *
-     * @param characterId Die ID des Charakters
-     * @param motionState Der zu prüfende Bewegungszustand
-     * @return Kollisionsdaten oder null wenn keine Kollision
+     * @param characterId ID des Charakters
+     * @param proposedState Vorgeschlagener Bewegungszustand
+     * @return Kollisionspunkt als MotionState oder null wenn keine Kollision
      */
-    CollisionData checkCollision(UUID characterId,
-                                MotionState motionState);
-
+    MotionState checkCollision(UUID characterId, MotionState proposedState);
+    
     /**
-     * Berechnet physikalische Interaktionen.
+     * Setzt den Layer für einen Charakter zurück.
      *
-     * @param characterId Die ID des Charakters
-     * @param physicsData Die physikalischen Eingabedaten
-     * @return Der resultierende Bewegungszustand
+     * @param characterId ID des Charakters
      */
-    MotionState processPhysics(UUID characterId,
-                              PhysicsData physicsData);
+    void reset(UUID characterId);
 }
