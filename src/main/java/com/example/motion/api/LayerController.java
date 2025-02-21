@@ -22,7 +22,7 @@ public class LayerController {
 
     private final ICharacterMotionService motionService;
 
-    public LayerController(ICharacterMotionService(ICharacterMotionService motionService) {
+    public LayerController(ICharacterMotionService motionService) {
         this.motionService = motionService;
     }
 
