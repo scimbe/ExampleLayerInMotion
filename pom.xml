@@ -133,6 +133,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <mainClass>com.example.motion.MotionSystemApplication</mainClass>
                 </configuration>
             </plugin>
 
