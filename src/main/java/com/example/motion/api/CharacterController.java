@@ -1,6 +1,6 @@
 package com.example.motion.api;
 
-import com.example.motion.services.CharacterMotionServiceImpl;
+import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.sys.model.MotionState;
 import com.example.motion.sys.model.Position;
 import com.example.motion.sys.model.Rotation;
@@ -26,9 +26,9 @@ import com.example.motion.sys.model.Vector3D;
 @Tag(name = "Character Controller", description = "API zur Steuerung von Charakteren")
 public class CharacterController {
 
-    private final CharacterMotionServiceImpl motionService;
+    private final ICharacterMotionService motionService;
 
-    public CharacterController(CharacterMotionServiceImpl motionService) {
+    public CharacterController(ICharacterMotionService motionService) {
         this.motionService = motionService;
     }
 

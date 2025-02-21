@@ -1,6 +1,6 @@
 package com.example.motion.api;
 
-import com.example.motion.services.CharacterMotionServiceImpl;
+import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.sys.behavior.IMotionLayer;
 import com.example.motion.sys.behavior.BasicWalkingLayer;
 import com.example.motion.api.dto.*;
@@ -21,9 +21,9 @@ import java.util.List;
 @Tag(name = "Layer Controller", description = "API zur Verwaltung von Motion Layers")
 public class LayerController {
 
-    private final CharacterMotionServiceImpl motionService;
+    private final ICharacterMotionService motionService;
 
-    public LayerController(CharacterMotionServiceImpl motionService) {
+    public LayerController(ICharacterMotionService motionService) {
         this.motionService = motionService;
     }
 
