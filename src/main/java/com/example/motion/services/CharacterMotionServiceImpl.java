@@ -1,5 +1,7 @@
 package com.example.motion.services;
 
+import com.example.motion.interfaces.ICharacterMotionService;
+import com.example.motion.interfaces.MotionCallback;
 import com.example.motion.sys.behavior.IMotionLayer;
 import com.example.motion.sys.data.IMotionDataRepository;
 import com.example.motion.sys.model.MotionState;
@@ -135,19 +137,16 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                 speed
             );
 
-            // Verarbeite Zustand durch alle Layer
             try {
                 layerLock.readLock().lock();
                 MotionState processedState = newState;
                 for (IMotionLayer layer : getActiveLayers()) {
-                    // Verarbeite den Zustand
                     processedState = layer.processMotion(
                         characterId,
                         processedState,
                         1.0f/60.0f
                     );
 
-                    // Prüfe auf Kollisionen
                     if (layer.checkCollision(characterId, processedState) != null) {
                         throw new IllegalStateException("Kollision erkannt");
                     }
@@ -198,13 +197,11 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
 
                 float currentTime = (System.currentTimeMillis() - playback.getStartTime()) / 1000.0f * playback.getSpeed();
 
-                // Interpoliere Animationszustand
                 MotionState animatedState = playback.getAnimation().interpolateAtTime(
                     currentTime,
                     playback.getBaseState()
                 );
 
-                // Verarbeite durch alle Layer
                 try {
                     layerLock.readLock().lock();
                     MotionState processedState = animatedState;
@@ -221,7 +218,6 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
                     layerLock.readLock().unlock();
                 }
 
-                // Prüfe Animation Ende
                 if (!playback.getAnimation().isLooping() &&
                     currentTime >= playback.getAnimation().getDuration()) {
                     stopActiveAnimation(characterId);
