@@ -1,6 +1,7 @@
 package com.example.motion.sys.behavior;
 
 import com.example.motion.sys.model.MotionState;
+import com.example.motion.sys.model.CollisionData;
 import java.util.UUID;
 
 /**
@@ -24,9 +25,9 @@ public interface IMotionLayer {
      *
      * @param characterId ID des Charakters
      * @param proposedState Vorgeschlagener Bewegungszustand
-     * @return Kollisionspunkt als MotionState oder null wenn keine Kollision
+     * @return Kollisionsdaten oder null wenn keine Kollision
      */
-    MotionState checkCollision(UUID characterId, MotionState proposedState);
+    CollisionData checkCollision(UUID characterId, MotionState proposedState);
     
     /**
      * Setzt den Layer für einen Charakter zurück.
