@@ -60,6 +60,9 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     public boolean removeMotionLayer(IMotionLayer layer) {
         try {
             layerLock.writeLock().lock();
+            if (!motionLayers.containsKey(layer)) {
+                return false;
+            }
             return motionLayers.remove(layer) != null;
         } finally {
             layerLock.writeLock().unlock();
