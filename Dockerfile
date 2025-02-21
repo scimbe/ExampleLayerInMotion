@@ -5,14 +5,14 @@ COPY pom.xml .
 COPY src ./src
 
 # Build the application and create the fat JAR
-RUN mvn clean package assembly:single
+RUN mvn clean package
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copy only the fat JAR from build stage
-COPY --from=build /app/target/*-jar-with-dependencies.jar ./motion-system.jar
+COPY --from=build /app/target/*.jar ./motion-system.jar
 
 # Create a non-root user for running the application
 RUN useradd -m -u 1001 motionapp && \
