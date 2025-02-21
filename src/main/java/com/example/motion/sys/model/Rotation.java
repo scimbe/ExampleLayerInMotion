@@ -1,20 +1,33 @@
 package com.example.motion.sys.model;
 
 /**
- * Repräsentiert die Rotation eines Charakters im 3D-Raum.
+ * Repräsentiert eine Rotation im 3D-Raum (Euler-Winkel).
  */
 public class Rotation {
-    private final float pitch;
-    private final float yaw;
-    private final float roll;
+    private final float x; // Pitch
+    private final float y; // Yaw
+    private final float z; // Roll
 
-    public Rotation(float pitch, float yaw, float roll) {
-        this.pitch = pitch;
-        this.yaw = yaw;
-        this.roll = roll;
+    public Rotation(float x, float y, float z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    public float getPitch() { return pitch; }
-    public float getYaw() { return yaw; }
-    public float getRoll() { return roll; }
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public float getZ() {
+        return z;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Rotation(pitch=%.2f, yaw=%.2f, roll=%.2f)", x, y, z);
+    }
 }
