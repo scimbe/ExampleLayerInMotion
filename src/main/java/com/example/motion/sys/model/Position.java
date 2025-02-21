@@ -1,7 +1,7 @@
 package com.example.motion.sys.model;
 
 /**
- * Repräsentiert die Position eines Charakters im 3D-Raum.
+ * Repräsentiert eine Position im 3D-Raum.
  */
 public class Position {
     private final float x;
@@ -14,7 +14,20 @@ public class Position {
         this.z = z;
     }
 
-    public float getX() { return x; }
-    public float getY() { return y; }
-    public float getZ() { return z; }
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public float getZ() {
+        return z;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Position(x=%.2f, y=%.2f, z=%.2f)", x, y, z);
+    }
 }
