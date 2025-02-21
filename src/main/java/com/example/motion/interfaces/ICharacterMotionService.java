@@ -4,10 +4,15 @@ import com.example.motion.sys.model.MotionState;
 import com.example.motion.sys.model.Direction;
 import com.example.motion.sys.behavior.IMotionLayer;
 import com.example.motion.services.MotionCallback;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Interface für den Character Motion Service.
+ * Definiert die Hauptfunktionalität für die Bewegungssteuerung von Charakteren.
+ */
 public interface ICharacterMotionService {
     CompletableFuture<MotionState> playAnimation(UUID characterId, String animationId, float speed);
     CompletableFuture<MotionState> setMovementDirection(UUID characterId, Direction direction, float speed);
