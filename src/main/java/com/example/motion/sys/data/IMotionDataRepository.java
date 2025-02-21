@@ -1,68 +1,58 @@
 package com.example.motion.sys.data;
 
-import java.util.List;
-import java.util.UUID;
-
 import com.example.motion.sys.model.AnimationData;
 import com.example.motion.sys.model.MotionState;
-
+import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
- * Repository-Interface für die Datenpersistenz der Bewegungsdaten.
- * Verwaltet die Speicherung und den Abruf von Bewegungsinformationen.
+ * Repository-Interface für die Persistierung von Bewegungsdaten.
  */
 public interface IMotionDataRepository {
-
+    
     /**
-     * Speichert einen Bewegungszustand.
+     * Lädt den Bewegungszustand eines Charakters.
      *
-     * @param characterId Die ID des Charakters
-     * @param state Der zu speichernde Zustand
-     * @return true wenn das Speichern erfolgreich war
-     */
-    boolean saveMotionState(UUID characterId, MotionState state);
-
-    /**
-     * Lädt den letzten Bewegungszustand eines Charakters.
-     *
-     * @param characterId Die ID des Charakters
-     * @return Optional mit dem Bewegungszustand
+     * @param characterId ID des Charakters
+     * @return Bewegungszustand oder Optional.empty() wenn nicht gefunden
      */
     Optional<MotionState> loadMotionState(UUID characterId);
-
+    
+    /**
+     * Speichert den Bewegungszustand eines Charakters.
+     *
+     * @param characterId ID des Charakters
+     * @param state Zu speichernder Bewegungszustand
+     */
+    void saveMotionState(UUID characterId, MotionState state);
+    
     /**
      * Lädt Animationsdaten.
      *
-     * @param animationId Die ID der Animation
-     * @return Optional mit den Animationsdaten
+     * @param animationId ID der Animation
+     * @return Animationsdaten oder Optional.empty() wenn nicht gefunden
      */
     Optional<AnimationData> getAnimationData(String animationId);
-
+    
     /**
-     * Lädt die Bewegungshistorie eines Charakters.
+     * Speichert Animationsdaten.
      *
-     * @param characterId Die ID des Charakters
-     * @param limit Maximale Anzahl der Einträge
-     * @return Liste der historischen Bewegungszustände
+     * @param animation Zu speichernde Animationsdaten
      */
-    List<MotionState> getMotionHistory(UUID characterId, int limit);
-
+    void saveAnimationData(AnimationData animation);
+    
     /**
-     * Löscht alte Bewegungsdaten eines Charakters.
+     * Löscht alte Bewegungszustände.
      *
-     * @param characterId Die ID des Charakters
-     * @param maxAge Maximales Alter der Daten in Millisekunden
-     * @return Anzahl der gelöschten Einträge
+     * @param maxAge Maximales Alter der Daten
      */
-    int cleanupMotionData(UUID characterId, long maxAge);
-
+    void clearOldMotionStates(Duration maxAge);
+    
     /**
-     * Speichert neue Animationsdaten.
+     * Löscht alle Daten eines Charakters.
      *
-     * @param animationId Die ID der Animation
-     * @param data Die zu speichernden Animationsdaten
-     * @return true wenn das Speichern erfolgreich war
+     * @param characterId ID des Charakters
      */
-    boolean saveAnimationData(String animationId, AnimationData data);
+    void deleteCharacterData(UUID characterId);
 }
