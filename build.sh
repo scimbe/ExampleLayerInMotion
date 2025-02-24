@@ -29,6 +29,21 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Hilfe anzeigen
+show_help() {
+    echo "Nutzung: $0 [Optionen]"
+    echo ""
+    echo "Optionen:"
+    echo "  -h, --help      Diese Hilfe anzeigen"
+    echo "  -c, --clean     Cleanup durchführen"
+    echo "  -b, --build     Projekt bauen"
+    echo "  -s, --sonar     SonarQube-Analyse durchführen (erfordert laufenden SonarQube-Server)"
+    echo "  -d, --docker    Docker-Image bauen"
+    echo "  -a, --all       Alle Schritte ausführen (ohne SonarQube)"
+    echo "  --all-sonar     Alle Schritte inklusive SonarQube ausführen"
+    echo ""
+}
+
 # Prüfe ob notwendige Tools installiert sind
 check_requirements() {
     log_info "Prüfe Systemvoraussetzungen..."
@@ -134,7 +149,7 @@ build_project() {
     log_info "JaCoCo Report erstellt"
 
     log_info "Erstelle JAR-Archiv..."
-    if ! mvn package assembly:single -DskipTests; then
+    if ! mvn package -DskipTests; then
         log_error "Paketerstellung fehlgeschlagen"
         exit 1
     fi
@@ -144,8 +159,8 @@ build_project() {
 # SonarQube Analyse
 run_sonar_analysis() {
     if ! check_sonar_server; then
-        log_warn "Überspringe SonarQube-Analyse"
-        return
+        log_warn "Überspringe SonarQube-Analyse, da Server nicht erreichbar ist"
+        return 1
     fi
 
     log_info "Starte SonarQube-Analyse..."
@@ -156,24 +171,14 @@ run_sonar_analysis() {
         return 1
     fi
 
-    sonar-scanner \
-        -Dsonar.host.url="$SONAR_HOST_URL" \
-        -Dsonar.projectKey="$SONAR_PROJECT_KEY" \
-        -Dsonar.java.binaries=target/classes \
-        -Dsonar.sources=src/main/java \
-        -Dsonar.tests=src/test/java \
-        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
-        -Dsonar.junit.reportPaths=target/surefire-reports \
-        -Dsonar.java.coveragePlugin=jacoco \
-        -Dsonar.login="$SONAR_TOKEN"
-
-    if [ $? -eq 0 ]; then
-        log_info "SonarQube-Analyse erfolgreich abgeschlossen"
-        log_info "Dashboard: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
-    else
+    if ! mvn sonar:sonar -Dsonar.skip=false; then
         log_error "SonarQube-Analyse fehlgeschlagen"
         return 1
     fi
+    
+    log_info "SonarQube-Analyse erfolgreich abgeschlossen"
+    log_info "Dashboard: $SONAR_HOST_URL/dashboard?id=$SONAR_PROJECT_KEY"
+    return 0
 }
 
 # Docker Image bauen
@@ -227,10 +232,9 @@ main() {
     local do_sonar=0
     local do_docker=0
 
+    # Ohne Argumente: build und docker (kein sonar, kein clean)
     if [ $# -eq 0 ]; then
-        do_clean=1
         do_build=1
-        do_sonar=1
         do_docker=1
     fi
 
@@ -248,6 +252,10 @@ main() {
             -d | --docker )  do_docker=1
                             ;;
             -a | --all )     do_clean=1
+                            do_build=1
+                            do_docker=1
+                            ;;
+            --all-sonar )    do_clean=1
                             do_build=1
                             do_sonar=1
                             do_docker=1
