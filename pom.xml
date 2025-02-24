@@ -31,6 +31,8 @@
         <springdoc.version>2.1.0</springdoc.version>
         <lombok.version>1.18.30</lombok.version>
         <jacoco.version>0.8.11</jacoco.version>
+        <!-- SonarQube-Ausführung standardmäßig deaktivieren -->
+        <sonar.skip>true</sonar.skip>
     </properties>
 
     <dependencies>
@@ -206,20 +208,24 @@
                 </executions>
             </plugin>
 
-            <!-- SonarQube Plugin -->
+            <!-- SonarQube Plugin - Nicht mehr automatisch bei verify ausgeführt -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>3.9.1.2184</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sonar</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <!-- Automatische Ausführung deaktiviert -->
             </plugin>
         </plugins>
     </build>
+
+    <!-- Profil für SonarQube, nur bei expliziter Aktivierung -->
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <properties>
+                <sonar.skip>false</sonar.skip>
+                <sonar.host.url>http://localhost:9000</sonar.host.url>
+            </properties>
+        </profile>
+    </profiles>
 </project>
