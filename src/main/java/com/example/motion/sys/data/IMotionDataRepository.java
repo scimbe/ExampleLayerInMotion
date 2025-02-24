@@ -3,6 +3,7 @@ package com.example.motion.sys.data;
 import com.example.motion.sys.model.AnimationData;
 import com.example.motion.sys.model.MotionState;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,16 +44,41 @@ public interface IMotionDataRepository {
     void saveAnimationData(AnimationData animation);
     
     /**
+     * Gibt die Bewegungshistorie eines Charakters zurück.
+     *
+     * @param characterId ID des Charakters
+     * @param limit Maximale Anzahl der zurückzugebenden Zustände
+     * @return Liste der letzten Bewegungszustände
+     */
+    default List<MotionState> getMotionHistory(UUID characterId, int limit) {
+        return List.of();
+    }
+    
+    /**
+     * Löscht alte Bewegungsdaten.
+     *
+     * @param characterId ID des Charakters
+     * @param olderThan Maximales Alter der zu behaltenden Daten
+     */
+    default void cleanupMotionData(UUID characterId, long olderThan) {
+        // Standardimplementierung macht nichts
+    }
+    
+    /**
      * Löscht alte Bewegungszustände.
      *
      * @param maxAge Maximales Alter der Daten
      */
-    void clearOldMotionStates(Duration maxAge);
+    default void clearOldMotionStates(Duration maxAge) {
+        // Standardimplementierung macht nichts
+    }
     
     /**
      * Löscht alle Daten eines Charakters.
      *
      * @param characterId ID des Charakters
      */
-    void deleteCharacterData(UUID characterId);
+    default void deleteCharacterData(UUID characterId) {
+        // Standardimplementierung macht nichts
+    }
 }
