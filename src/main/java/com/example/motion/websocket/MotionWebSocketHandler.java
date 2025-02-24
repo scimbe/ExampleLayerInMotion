@@ -1,6 +1,7 @@
 package com.example.motion.websocket;
 
 import com.example.motion.interfaces.ICharacterMotionService;
+import com.example.motion.interfaces.MotionCallback;
 import com.example.motion.sys.model.MotionState;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,16 @@ public class MotionWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        // Optional: Subscribe to character updates
+        // Optional: Weise Session einem Character zu und registriere Callback
+        UUID characterId = UUID.randomUUID();
+        sessionCharacterMap.put(session, characterId);
+        
+        motionService.registerMotionCallback(characterId, new MotionCallback() {
+            @Override
+            public void onMotionUpdate(UUID charactId, MotionState newState) {
+                sendMotionUpdate(charactId, newState);
+            }
+        });
     }
 
     public void sendMotionUpdate(UUID characterId, MotionState state) {
