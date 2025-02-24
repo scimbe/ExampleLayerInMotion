@@ -29,7 +29,8 @@ const gameState = {
     gameLoopId: null,
     isMoving: false,
     currentAnimation: null,
-    goals: []
+    goals: [],
+    offlineMode: false
 };
 
 // ---- DOM-Elemente ----
@@ -60,27 +61,48 @@ function setupCanvas() {
 // Erstellt einen neuen Charakter
 async function createCharacter() {
     try {
-        const response = await fetch(`${API_BASE_URL}/characters`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                x: canvas.width / 2,
-                y: 0,
-                z: canvas.height / 2
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler beim Erstellen des Charakters");
+        try {
+            const response = await fetch(`${API_BASE_URL}/characters`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    x: canvas.width / 2,
+                    y: 0,
+                    z: canvas.height / 2
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                gameState.character.id = data.characterId;
+                updateCharacterState(data);
+                
+                return data;
+            }
+        } catch (e) {
+            console.warn("API nicht verfügbar, verwende Mock-Daten", e);
+            gameState.offlineMode = true;
         }
         
-        const data = await response.json();
-        gameState.character.id = data.characterId;
-        updateCharacterState(data);
-        
-        return data;
+        // Fallback zu Mock-Daten
+        if (gameState.offlineMode) {
+            const mockCharacter = {
+                characterId: "mock-" + Math.random().toString(36).substring(2, 9),
+                x: canvas.width / 2,
+                y: 0,
+                z: canvas.height / 2,
+                speed: 0,
+                rotationX: 0,
+                rotationY: 0,
+                rotationZ: 0
+            };
+            gameState.character.id = mockCharacter.characterId;
+            updateCharacterState(mockCharacter);
+            showMessage("Offline-Modus aktiviert");
+            return mockCharacter;
+        }
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler beim Erstellen des Charakters:", error);
@@ -94,27 +116,68 @@ async function moveCharacter(dirX, dirY, dirZ, speed = DEFAULT_SPEED) {
     try {
         gameState.isMoving = true;
         
-        const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/move`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                directionX: dirX,
-                directionY: dirY,
-                directionZ: dirZ,
-                speed: speed
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler bei der Bewegung");
+        // Online-Modus: API aufrufen
+        if (!gameState.offlineMode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/move`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        directionX: dirX,
+                        directionY: dirY,
+                        directionZ: dirZ,
+                        speed: speed
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateCharacterState(data);
+                    return data;
+                }
+            } catch (e) {
+                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
+                gameState.offlineMode = true;
+            }
         }
         
-        const data = await response.json();
-        updateCharacterState(data);
-        
-        return data;
+        // Offline-Modus: Lokale Bewegungsberechnung
+        if (gameState.offlineMode) {
+            // Berechne Winkel basierend auf Richtung
+            const angle = Math.atan2(dirX, dirZ);
+            gameState.character.rotationY = angle * (180 / Math.PI);
+            
+            // Berechne Bewegung basierend auf Layer-Typ und Richtung
+            let movementSpeed = speed;
+            if (gameState.activeLayer === "RunningLayer") {
+                movementSpeed = speed * 2;
+            } else if (gameState.activeLayer === "IdleLayer") {
+                movementSpeed = 0;
+            }
+            
+            // Berechne neue Position
+            const newX = gameState.character.x + (dirX * movementSpeed * 5);
+            const newZ = gameState.character.z + (dirZ * movementSpeed * 5);
+            
+            // Grenzen überprüfen
+            const paddedWidth = canvas.width - 20;
+            const paddedHeight = canvas.height - 20;
+            
+            gameState.character.x = Math.max(20, Math.min(newX, paddedWidth));
+            gameState.character.z = Math.max(20, Math.min(newZ, paddedHeight));
+            gameState.character.speed = movementSpeed;
+            
+            // Vertikale Bewegungssimulation für BasicWalkingLayer
+            if (gameState.activeLayer === "BasicWalkingLayer" && movementSpeed > 0) {
+                const time = Date.now() / 500;
+                gameState.character.y = Math.sin(time) * 0.05;
+            }
+            
+            updateStatusDisplay();
+            checkGoalCollision();
+        }
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler bei der Bewegung:", error);
@@ -128,25 +191,35 @@ async function playAnimation(animationId, speed = 1.0) {
     try {
         gameState.currentAnimation = animationId;
         
-        const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/animate`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                animationId: animationId,
-                speed: speed
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler beim Abspielen der Animation");
+        // Online-Modus: API aufrufen
+        if (!gameState.offlineMode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/animate`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        animationId: animationId,
+                        speed: speed
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateCharacterState(data);
+                    return data;
+                }
+            } catch (e) {
+                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
+                gameState.offlineMode = true;
+            }
         }
         
-        const data = await response.json();
-        updateCharacterState(data);
-        
-        return data;
+        // Offline-Modus: Animation simulieren
+        if (gameState.offlineMode) {
+            showMessage(`Animation: ${animationId}`);
+        }
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler beim Abspielen der Animation:", error);
@@ -161,18 +234,29 @@ async function stopCharacter() {
         gameState.isMoving = false;
         gameState.currentAnimation = null;
         
-        const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/stop`, {
-            method: "POST"
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler beim Stoppen");
+        // Online-Modus: API aufrufen
+        if (!gameState.offlineMode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/stop`, {
+                    method: "POST"
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateCharacterState(data);
+                    return data;
+                }
+            } catch (e) {
+                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
+                gameState.offlineMode = true;
+            }
         }
         
-        const data = await response.json();
-        updateCharacterState(data);
-        
-        return data;
+        // Offline-Modus: Geschwindigkeit auf 0 setzen
+        if (gameState.offlineMode) {
+            gameState.character.speed = 0;
+            updateStatusDisplay();
+        }
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler beim Stoppen:", error);
@@ -182,28 +266,58 @@ async function stopCharacter() {
 // Ändert den aktiven Layer
 async function setActiveLayer(layerClassName, priority = 1) {
     try {
-        const response = await fetch(`${API_BASE_URL}/layers`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                className: `com.example.motion.sys.behavior.${layerClassName}`,
-                priority: priority
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler beim Ändern des Layers");
+        // Online-Modus: API aufrufen
+        if (!gameState.offlineMode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/layers`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        className: `com.example.motion.sys.behavior.${layerClassName}`,
+                        priority: priority
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    gameState.activeLayer = layerClassName;
+                    activeLayerElement.textContent = layerClassName;
+                    updateLayerButtons(layerClassName);
+                    return data;
+                }
+            } catch (e) {
+                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
+                gameState.offlineMode = true;
+            }
         }
         
-        const data = await response.json();
-        gameState.activeLayer = layerClassName;
-        activeLayerElement.textContent = layerClassName;
-        
-        updateLayerButtons(layerClassName);
-        
-        return data;
+        // Offline-Modus: Layer lokal aktualisieren
+        if (gameState.offlineMode) {
+            gameState.activeLayer = layerClassName;
+            activeLayerElement.textContent = layerClassName;
+            updateLayerButtons(layerClassName);
+            
+            // Geschwindigkeit anpassen basierend auf Layer
+            if (layerClassName === "RunningLayer") {
+                // Running ist schneller
+                if (gameState.isMoving) {
+                    gameState.character.speed = DEFAULT_SPEED * 2.0;
+                }
+            } else if (layerClassName === "IdleLayer") {
+                // Idle macht keine Bewegung
+                gameState.character.speed = 0;
+            } else {
+                // BasicWalkingLayer - Standard Geschwindigkeit
+                if (gameState.isMoving) {
+                    gameState.character.speed = DEFAULT_SPEED;
+                }
+            }
+            
+            showMessage(`Layer geändert: ${layerClassName}`);
+            updateStatusDisplay();
+        }
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler beim Ändern des Layers:", error);
@@ -213,14 +327,23 @@ async function setActiveLayer(layerClassName, priority = 1) {
 // Entfernt einen Layer
 async function removeLayer(layerClassName) {
     try {
-        const response = await fetch(`${API_BASE_URL}/layers/${encodeURIComponent('com.example.motion.sys.behavior.' + layerClassName)}`, {
-            method: "DELETE"
-        });
-        
-        if (!response.ok) {
-            throw new Error("Fehler beim Entfernen des Layers");
+        // Online-Modus: API aufrufen
+        if (!gameState.offlineMode) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/layers/${encodeURIComponent('com.example.motion.sys.behavior.' + layerClassName)}`, {
+                    method: "DELETE"
+                });
+                
+                if (response.ok) {
+                    return true;
+                }
+            } catch (e) {
+                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
+                gameState.offlineMode = true;
+            }
         }
         
+        // Offline-Modus: Keine spezielle Behandlung nötig
         return true;
     } catch (error) {
         showMessage("Fehler: " + error.message);
@@ -230,55 +353,75 @@ async function removeLayer(layerClassName) {
 
 // ---- Websocket-Verbindung ----
 function connectWebSocket() {
-    if (gameState.webSocket) {
-        gameState.webSocket.close();
+    // Prüfe, ob Browser WebSockets unterstützt
+    if (typeof WebSocket === "undefined") {
+        console.warn("WebSocket wird in diesem Browser nicht unterstützt");
+        gameState.offlineMode = true;
+        return;
     }
     
-    gameState.webSocket = new WebSocket(WS_URL);
-    
-    gameState.webSocket.onopen = () => {
-        console.log("WebSocket verbunden");
-    };
-    
-    gameState.webSocket.onmessage = (event) => {
+    if (gameState.webSocket) {
         try {
-            const data = JSON.parse(event.data);
-            
-            switch(data.type) {
-                case "POSITION_UPDATE":
-                    if (data.characterId === gameState.character.id) {
-                        gameState.character.x = data.position.x;
-                        gameState.character.y = data.position.y;
-                        gameState.character.z = data.position.z;
-                        updateStatusDisplay();
-                        checkGoalCollision();
-                    }
-                    break;
-                case "ANIMATION_UPDATE":
-                    // Animation-Updates verarbeiten
-                    break;
-                case "LAYER_UPDATE":
-                    if (data.characterId === gameState.character.id) {
-                        gameState.activeLayer = data.activeLayer;
-                        activeLayerElement.textContent = data.activeLayer;
-                        updateLayerButtons(data.activeLayer);
-                    }
-                    break;
-            }
-        } catch (error) {
-            console.error("Fehler beim Verarbeiten der WebSocket-Nachricht:", error);
+            gameState.webSocket.close();
+        } catch (e) {
+            console.error("Fehler beim Schließen des WebSockets:", e);
         }
-    };
+    }
     
-    gameState.webSocket.onerror = (error) => {
-        console.error("WebSocket-Fehler:", error);
-    };
-    
-    gameState.webSocket.onclose = () => {
-        console.log("WebSocket-Verbindung geschlossen");
-        // Automatische Wiederverbindung nach einer kurzen Verzögerung
-        setTimeout(connectWebSocket, 3000);
-    };
+    try {
+        gameState.webSocket = new WebSocket(WS_URL);
+        
+        gameState.webSocket.onopen = () => {
+            console.log("WebSocket verbunden");
+            gameState.offlineMode = false;
+        };
+        
+        gameState.webSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                switch(data.type) {
+                    case "POSITION_UPDATE":
+                        if (data.characterId === gameState.character.id) {
+                            gameState.character.x = data.position.x;
+                            gameState.character.y = data.position.y;
+                            gameState.character.z = data.position.z;
+                            updateStatusDisplay();
+                            checkGoalCollision();
+                        }
+                        break;
+                    case "ANIMATION_UPDATE":
+                        // Animation-Updates verarbeiten
+                        break;
+                    case "LAYER_UPDATE":
+                        if (data.characterId === gameState.character.id) {
+                            gameState.activeLayer = data.activeLayer;
+                            activeLayerElement.textContent = data.activeLayer;
+                            updateLayerButtons(data.activeLayer);
+                        }
+                        break;
+                }
+            } catch (error) {
+                console.error("Fehler beim Verarbeiten der WebSocket-Nachricht:", error);
+            }
+        };
+        
+        gameState.webSocket.onerror = (error) => {
+            console.error("WebSocket-Fehler:", error);
+            gameState.offlineMode = true;
+        };
+        
+        gameState.webSocket.onclose = () => {
+            console.log("WebSocket-Verbindung geschlossen");
+            gameState.offlineMode = true;
+            
+            // Automatische Wiederverbindung nach einer kurzen Verzögerung
+            setTimeout(connectWebSocket, 3000);
+        };
+    } catch (e) {
+        console.warn("Fehler beim Verbinden mit WebSocket:", e);
+        gameState.offlineMode = true;
+    }
 }
 
 // ---- Spiellogik ----
@@ -286,7 +429,13 @@ function connectWebSocket() {
 // Initialisiert das Spiel
 async function initGame() {
     setupCanvas();
-    connectWebSocket();
+    
+    try {
+        connectWebSocket();
+    } catch (e) {
+        console.warn("WebSocket konnte nicht initialisiert werden:", e);
+        gameState.offlineMode = true;
+    }
     
     try {
         await createCharacter();
@@ -297,6 +446,14 @@ async function initGame() {
     } catch (error) {
         showMessage("Fehler beim Starten des Spiels: " + error.message);
         console.error("Fehler beim Starten des Spiels:", error);
+        
+        // Notfall-Fallback: Spiel trotzdem starten
+        gameState.offlineMode = true;
+        gameState.character.id = "fallback-" + Math.random().toString(36).substring(2, 9);
+        gameState.character.x = canvas.width / 2;
+        gameState.character.z = canvas.height / 2;
+        generateNewGoal();
+        startGameLoop();
     }
 }
 
@@ -318,6 +475,16 @@ function startGameLoop() {
         
         // Charakter zeichnen
         drawCharacter();
+        
+        // Offline-Modus-Anzeige
+        if (gameState.offlineMode) {
+            ctx.save();
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#e74c3c";
+            ctx.textAlign = "left";
+            ctx.fillText("OFFLINE MODUS", 10, 20);
+            ctx.restore();
+        }
         
         // Weiter animieren
         gameState.gameLoopId = requestAnimationFrame(gameLoop);
@@ -369,9 +536,18 @@ function drawCharacter() {
     // Charakter-Kreis
     ctx.beginPath();
     ctx.arc(x, y, 15, 0, Math.PI * 2);
-    ctx.fillStyle = "#3498db";
+    
+    // Farbe je nach aktivem Layer
+    if (gameState.activeLayer === "RunningLayer") {
+        ctx.fillStyle = "#e74c3c"; // Rot für schnelles Laufen
+    } else if (gameState.activeLayer === "IdleLayer") {
+        ctx.fillStyle = "#2ecc71"; // Grün für Stehen
+    } else {
+        ctx.fillStyle = "#3498db"; // Blau für normales Gehen
+    }
+    
     ctx.fill();
-    ctx.strokeStyle = "#2980b9";
+    ctx.strokeStyle = "#2c3e50";
     ctx.lineWidth = 2;
     ctx.stroke();
     
@@ -383,6 +559,12 @@ function drawCharacter() {
     ctx.strokeStyle = "#e74c3c";
     ctx.lineWidth = 3;
     ctx.stroke();
+    
+    // Zeige den aktiven Layer als Text
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#333";
+    ctx.textAlign = "center";
+    ctx.fillText(gameState.activeLayer.replace("Layer", ""), x, y - 20);
     
     ctx.restore();
 }
@@ -432,6 +614,12 @@ function drawGoal() {
     ctx.strokeStyle = "orange";
     ctx.lineWidth = 2;
     ctx.stroke();
+    
+    // Ziel-Text
+    ctx.font = "10px Arial";
+    ctx.fillStyle = "#333";
+    ctx.textAlign = "center";
+    ctx.fillText("ZIEL", x, y - 15);
     
     ctx.restore();
 }
