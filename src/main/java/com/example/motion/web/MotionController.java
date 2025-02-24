@@ -7,12 +7,13 @@ import com.example.motion.sys.model.Direction;
 import com.example.motion.sys.model.Vector3D;
 import com.example.motion.sys.model.MotionState;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.UUID;
 
-@RestController
+@Controller
 public class MotionController {
 
     private final ICharacterMotionService motionService;
@@ -22,12 +23,24 @@ public class MotionController {
         this.motionService = motionService;
     }
 
+    @GetMapping("/")
+    public String getIndex() {
+        return "redirect:/index.html";
+    }
+
+    @GetMapping("/game")
+    public String getGame() {
+        return "redirect:/index.html";
+    }
+
     @GetMapping("/animated-surface")
+    @ResponseBody
     public String getAnimatedSurface() {
         return "Animated surface showing movement, motion layer switching, and coordinates on a grid. Access the motion behavior demo via /demo-motion endpoint.";
     }
 
     @GetMapping("/demo-motion")
+    @ResponseBody
     public String demoMotionBehavior() {
         try {
             UUID characterId = UUID.randomUUID();
@@ -76,6 +89,7 @@ public class MotionController {
     }
 
     @GetMapping("/current-position")
+    @ResponseBody
     public String getCurrentPosition() {
         try {
             UUID characterId = UUID.randomUUID();
