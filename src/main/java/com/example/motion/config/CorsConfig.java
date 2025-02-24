@@ -7,6 +7,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * CORS-Konfiguration für den API-Zugriff.
@@ -19,22 +20,23 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         
-        // Alle Ursprünge erlauben für Entwicklungszwecke
+        // Für Entwicklungszwecke erlauben wir alle Ursprünge
         // In der Produktion sollte dies eingeschränkt werden
+        config.setAllowedOriginPatterns(Collections.singletonList("*"));
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // Zugriffssteuerung für Cookies und Authentifizierungs-Header
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("*");
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("OPTIONS");
-        config.addAllowedMethod("GET");
-        config.addAllowedMethod("POST");
-        config.addAllowedMethod("PUT");
-        config.addAllowedMethod("DELETE");
         
         // Expose Header für besseres Caching und Pagination
         config.setExposedHeaders(Arrays.asList(
             "Authorization", "X-Total-Count", "Link", 
             "X-Rate-Limit-Remaining", "X-Rate-Limit-Retry-After-Milliseconds"
         ));
+        
+        // Max Age für Preflight-Requests (OPTIONS)
+        config.setMaxAge(3600L);
         
         // Konfiguration auf alle Pfade anwenden
         source.registerCorsConfiguration("/**", config);
