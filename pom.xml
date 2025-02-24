@@ -25,11 +25,12 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <junit.version>5.9.2</junit.version>
-        <mockito.version>5.2.0</mockito.version>
+        <mockito.version>5.8.0</mockito.version>
         <slf4j.version>2.0.7</slf4j.version>
         <bucket4j.version>8.1.0</bucket4j.version>
         <springdoc.version>2.1.0</springdoc.version>
         <lombok.version>1.18.30</lombok.version>
+        <jacoco.version>0.8.11</jacoco.version>
     </properties>
 
     <dependencies>
@@ -165,6 +166,7 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
+                    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
                 </configuration>
             </plugin>
 
@@ -172,7 +174,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
