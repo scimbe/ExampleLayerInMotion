@@ -2,6 +2,7 @@ package com.example.motion.sys.behavior;
 
 import com.example.motion.sys.model.MotionState;
 import com.example.motion.sys.model.CollisionData;
+import com.example.motion.sys.model.PhysicsData;
 import java.util.UUID;
 
 /**
@@ -30,9 +31,49 @@ public interface IMotionLayer {
     CollisionData checkCollision(UUID characterId, MotionState proposedState);
     
     /**
+     * Verarbeitet physikalische Daten und wendet sie auf den Bewegungszustand an.
+     *
+     * @param characterId ID des Charakters
+     * @param physicsData Physikalische Daten
+     * @return Aktualisierter Bewegungszustand
+     */
+    default MotionState processPhysics(UUID characterId, PhysicsData physicsData) {
+        return new MotionState(
+            characterId,
+            physicsData.getPosition(),
+            physicsData.getRotation(),
+            physicsData.getSpeed()
+        );
+    }
+    
+    /**
+     * Validiert einen Bewegungszustand.
+     *
+     * @param motionState Zu validierender Bewegungszustand
+     * @return true wenn der Zustand gültig ist, false sonst
+     */
+    default boolean validateMotionState(MotionState motionState) {
+        return true;
+    }
+    
+    /**
+     * Interpoliert zwischen zwei Bewegungszuständen.
+     *
+     * @param start Ausgangszustand
+     * @param end Zielzustand
+     * @param factor Interpolationsfaktor (0-1)
+     * @return Interpolierter Zustand
+     */
+    default MotionState interpolateStates(MotionState start, MotionState end, float factor) {
+        return end;
+    }
+    
+    /**
      * Setzt den Layer für einen Charakter zurück.
      *
      * @param characterId ID des Charakters
      */
-    void reset(UUID characterId);
+    default void reset(UUID characterId) {
+        // Standardimplementierung macht nichts
+    }
 }
