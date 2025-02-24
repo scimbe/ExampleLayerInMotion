@@ -166,7 +166,11 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
-                    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                    <!-- Argumente, um JVM-Warnungen zu unterdrücken -->
+                    <argLine>
+                        -XX:+EnableDynamicAgentLoading
+                        @{argLine}
+                    </argLine>
                 </configuration>
             </plugin>
 
@@ -181,6 +185,16 @@
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <!-- Ausschlüsse für problematische Klassen -->
+                            <excludes>
+                                <exclude>**/com/sun/tools/**</exclude>
+                                <exclude>**/sun/util/resources/**</exclude>
+                                <exclude>**/jdk/internal/**</exclude>
+                                <exclude>**/java/lang/reflect/**</exclude>
+                                <exclude>**/java/lang/instrument/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>report</id>
