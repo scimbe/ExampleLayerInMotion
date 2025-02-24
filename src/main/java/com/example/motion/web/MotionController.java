@@ -1,6 +1,6 @@
 package com.example.motion.web;
 
-import com.example.motion.services.CharacterMotionServiceImpl;
+import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.sys.behavior.AdvancedWalkingLayer;
 import com.example.motion.sys.behavior.BasicWalkingLayer;
 import com.example.motion.sys.model.Direction;
@@ -15,8 +15,12 @@ import java.util.UUID;
 @RestController
 public class MotionController {
 
+    private final ICharacterMotionService motionService;
+
     @Autowired
-    private CharacterMotionServiceImpl motionService;
+    public MotionController(ICharacterMotionService motionService) {
+        this.motionService = motionService;
+    }
 
     @GetMapping("/animated-surface")
     public String getAnimatedSurface() {
