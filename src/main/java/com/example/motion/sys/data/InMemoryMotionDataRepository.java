@@ -2,6 +2,7 @@ package com.example.motion.sys.data;
 
 import com.example.motion.sys.model.AnimationData;
 import com.example.motion.sys.model.MotionState;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
@@ -11,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
+@Primary
 public class InMemoryMotionDataRepository implements IMotionDataRepository {
     private final Map<UUID, MotionState> motionStates;
     private final Map<UUID, List<MotionState>> motionHistories;
