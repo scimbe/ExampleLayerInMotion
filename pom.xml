@@ -30,7 +30,8 @@
         <bucket4j.version>8.1.0</bucket4j.version>
         <springdoc.version>2.1.0</springdoc.version>
         <lombok.version>1.18.30</lombok.version>
-        <jacoco.version>0.8.11</jacoco.version>
+        <!-- Aktualisierte JaCoCo-Version, die Java 23 unterstützt -->
+        <jacoco.version>0.8.12</jacoco.version>
         <!-- SonarQube-Ausführung standardmäßig deaktivieren -->
         <sonar.skip>true</sonar.skip>
     </properties>
@@ -168,7 +169,7 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
-                    <!-- Argumente, um JVM-Warnungen zu unterdrücken -->
+                    <!-- Argumente für JVM -->
                     <argLine>
                         -XX:+EnableDynamicAgentLoading
                         @{argLine}
@@ -188,14 +189,17 @@
                             <goal>prepare-agent</goal>
                         </goals>
                         <configuration>
-                            <!-- Ausschlüsse für problematische Klassen -->
+                            <!-- Erweiterte Ausschlüsse für problematische Klassen -->
                             <excludes>
                                 <exclude>**/com/sun/tools/**</exclude>
                                 <exclude>**/sun/util/resources/**</exclude>
                                 <exclude>**/jdk/internal/**</exclude>
                                 <exclude>**/java/lang/reflect/**</exclude>
                                 <exclude>**/java/lang/instrument/**</exclude>
+                                <exclude>**/java/util/ServiceLoader**</exclude>
                             </excludes>
+                            <!-- Zusätzliche JaCoCo-Eigenschaften -->
+                            <propertyName>argLine</propertyName>
                         </configuration>
                     </execution>
                     <execution>
@@ -225,6 +229,13 @@
             <properties>
                 <sonar.skip>false</sonar.skip>
                 <sonar.host.url>http://localhost:9000</sonar.host.url>
+            </properties>
+        </profile>
+        <!-- Profil zum Überspringen der JaCoCo-Instrumentierung -->
+        <profile>
+            <id>skip-jacoco</id>
+            <properties>
+                <jacoco.skip>true</jacoco.skip>
             </properties>
         </profile>
     </profiles>
