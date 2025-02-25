@@ -3,63 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motion Master - Charakterbewegungsspiel</title>
+    <title>Motion Master - Charakterbewegungssystem</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="game-container">
         <header>
-            <h1>Motion Master</h1>
-            <div id="score">Punkte: <span id="scoreValue">0</span></div>
+            <div class="header-left">
+                <h1>Motion Master</h1>
+                <span class="subtitle">Layer-basiertes Charakterbewegungssystem</span>
+            </div>
+            <div class="header-right">
+                <div id="connection-status" class="connection-status online">Online</div>
+                <div id="score">Punkte: <span id="scoreValue">0</span></div>
+            </div>
         </header>
 
         <main>
             <div class="game-board">
                 <canvas id="gameCanvas" width="600" height="400"></canvas>
-                <div id="goals"></div>
-                <div id="messages"></div>
+                <div id="goals" class="info-overlay"></div>
+                <div id="messages" class="info-overlay"></div>
+                <div id="loading-overlay" class="loading-overlay">
+                    <div class="loader"></div>
+                    <div class="loading-text">Initialisiere...</div>
+                </div>
             </div>
 
             <div class="controls">
-                <div class="movement-controls">
-                    <h2>Bewegung</h2>
-                    <div class="direction-buttons">
-                        <button id="moveUp">↑</button>
-                        <div class="horizontal-buttons">
-                            <button id="moveLeft">←</button>
-                            <button id="moveRight">→</button>
+                <div class="movement-controls control-panel">
+                    <h2>Bewegungssteuerung</h2>
+                    <div class="control-panel-content">
+                        <div class="direction-buttons">
+                            <button id="moveUp" class="direction-button" aria-label="Nach oben bewegen">↑</button>
+                            <div class="horizontal-buttons">
+                                <button id="moveLeft" class="direction-button" aria-label="Nach links bewegen">←</button>
+                                <button id="moveStop" class="direction-button stop-button" aria-label="Anhalten">⊗</button>
+                                <button id="moveRight" class="direction-button" aria-label="Nach rechts bewegen">→</button>
+                            </div>
+                            <button id="moveDown" class="direction-button" aria-label="Nach unten bewegen">↓</button>
                         </div>
-                        <button id="moveDown">↓</button>
+                        <div class="keyboard-hint">
+                            <small>Tastatur: WASD oder Pfeiltasten, Leertaste zum Anhalten</small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="layer-controls">
+                <div class="layer-controls control-panel">
                     <h2>Bewegungsart</h2>
-                    <button id="walkingLayer" class="layer-button active">Gehen</button>
-                    <button id="runningLayer" class="layer-button">Laufen</button>
-                    <button id="idleLayer" class="layer-button">Stehen</button>
+                    <div class="control-panel-content">
+                        <button id="walkingLayer" class="layer-button active" data-layer="BasicWalkingLayer">
+                            <span class="icon">🚶</span> Gehen
+                        </button>
+                        <button id="runningLayer" class="layer-button" data-layer="RunningLayer">
+                            <span class="icon">🏃</span> Laufen
+                        </button>
+                        <button id="idleLayer" class="layer-button" data-layer="IdleLayer">
+                            <span class="icon">🧍</span> Stehen
+                        </button>
+                    </div>
                 </div>
 
-                <div class="animation-controls">
+                <div class="animation-controls control-panel">
                     <h2>Animationen</h2>
-                    <button id="idleAnimation">Idle-Animation</button>
-                    <button id="walkAnimation">Geh-Animation</button>
+                    <div class="control-panel-content">
+                        <button id="idleAnimation" class="animation-button" data-animation="idle_breathing">
+                            <span class="icon">🧘</span> Ruheatmung
+                        </button>
+                        <button id="walkAnimation" class="animation-button" data-animation="basic_walk">
+                            <span class="icon">🚶</span> Gehzyklus
+                        </button>
+                    </div>
                 </div>
 
-                <div class="game-controls">
-                    <h2>Spiel</h2>
-                    <button id="newGame">Neues Spiel</button>
-                    <button id="nextGoal">Nächstes Ziel</button>
+                <div class="game-controls control-panel">
+                    <h2>Spielsteuerung</h2>
+                    <div class="control-panel-content">
+                        <button id="newGame" class="game-button">
+                            <span class="icon">🔄</span> Neues Spiel
+                        </button>
+                        <button id="nextGoal" class="game-button">
+                            <span class="icon">🎯</span> Nächstes Ziel
+                        </button>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <div id="character-info">
+        <div id="character-info" class="status-panel">
             <h3>Charakter-Status</h3>
-            <p>Position: X: <span id="posX">0</span>, Y: <span id="posY">0</span>, Z: <span id="posZ">0</span></p>
-            <p>Geschwindigkeit: <span id="speed">0</span></p>
-            <p>Aktive Schicht: <span id="activeLayer">-</span></p>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Position:</span>
+                    <span class="status-value">X: <span id="posX">0.00</span>, Y: <span id="posY">0.00</span>, Z: <span id="posZ">0.00</span></span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Geschwindigkeit:</span>
+                    <span class="status-value"><span id="speed">0.00</span> Einheiten/s</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Aktiver Layer:</span>
+                    <span class="status-value" id="activeLayer">BasicWalkingLayer</span>
+                </div>
+            </div>
         </div>
+
+        <footer class="game-footer">
+            <p>&copy; 2025 Motion Master | <a href="/api-docs" target="_blank">API-Dokumentation</a> | <a href="/demo-motion" target="_blank">Demo-Modus</a></p>
+        </footer>
     </div>
 
     <script src="js/game.js"></script>
