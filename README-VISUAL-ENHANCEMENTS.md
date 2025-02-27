@@ -64,122 +64,73 @@ Alle visuellen Effekte sind leistungsoptimiert:
 
 Das System ist modular aufgebaut und einfach erweiterbar:
 
-- Neue Partikeleffekte können durch Erweiterung der Konfigurationsklassen hinzugefügt werden
-- Eigene Fußspuren-Visualisierungen für spezielle Bewegungstypen
-- Anpassbare Animationskurven für spezifische Übergänge
+- Neue Partikeleffekte können einfach hinzugefügt werden
+- Anpassbare Animations-Kurven
+- Erweiterbare Fußspuren-Visualisierung
 
-## Implementierungsdetails
+## Verwendung
 
-### Paketstruktur
+### Backend
 
-Die visuellen Erweiterungen sind in folgende Pakete organisiert:
+```java
+// Einfache Integration durch Dependency Injection
+@Autowired
+private VisualEffectsController visualEffects;
 
-```
-com.example.motion.visual/
-├── animation/           # Animationskurven und Übergänge
-│   ├── EasingFunctions.java
-│   └── TransitionAnimator.java
-├── footstep/            # Fußspuren-Visualisierung
-│   ├── Footstep.java
-│   └── FootstepVisualizer.java
-├── particle/            # Partikelsystem
-│   ├── Particle.java
-│   ├── ParticleConfig.java
-│   └── ParticleSystem.java
-└── VisualEffectsController.java  # Zentrale Steuerung
+// Manuelles Erzeugen von Effekten
+visualEffects.createGoalReachedEffect(characterId, position);
+
+// Aktivieren/Deaktivieren von Effekten
+visualEffects.setEnabled(true);
 ```
 
-### Frontend-Integration
+### Frontend
 
-Die Frontend-Komponenten sind in folgende Dateien organisiert:
+```javascript
+// Initialisieren der Effekte
+const visualEffects = new VisualEffects(gameCanvas);
 
+// Erstellen von Fußspuren
+visualEffects.createFootstep(x, y, angle, isLeftFoot, 'RunningLayer');
+
+// Erstellen von Partikeleffekten
+visualEffects.createDustParticles(x, y, directionAngle, speed, 'RunningLayer', 5);
+visualEffects.createGoalReachedEffect(x, y, 30);
+visualEffects.createLayerChangeEffect(x, y, 'AdvancedWalkingLayer', 20);
 ```
-src/main/resources/
-├── static/css/
-│   └── visual-effects.css   # CSS-Styles für die Effekte
-├── static/js/
-│   └── visual-effects.js    # JavaScript-Klasse für die Effekte
-```
-
-## Aktivierung und Nutzung
-
-Um die visuellen Erweiterungen zu aktivieren:
-
-1. Spring Boot Konfiguration:
-   ```java
-   @Configuration
-   public class MotionConfig {
-       @Bean
-       @Primary
-       public ICharacterMotionService characterMotionService(
-           IMotionDataRepository repository,
-           VisualEffectsController visualEffects) {
-           return new EnhancedCharacterMotionService(repository, visualEffects);
-       }
-   }
-   ```
-
-2. Frontend-Integration:
-   ```html
-   <!-- Im <head> der HTML-Datei -->
-   <link rel="stylesheet" href="css/visual-effects.css">
-
-   <!-- Vor dem schließenden </body> Tag -->
-   <script src="js/visual-effects.js"></script>
-   <script>
-     // Nach der Initialisierung des Game-Canvas
-     const visualEffects = new VisualEffects(gameCanvas);
-     
-     // Bei Bewegung Effekte erzeugen
-     visualEffects.createFootstep(x, y, angle, isLeftFoot, "RunningLayer");
-     visualEffects.createDustParticles(x, y, directionAngle, speed, "RunningLayer");
-     
-     // Bei Zielerfassung
-     visualEffects.createGoalReachedEffect(goalX, goalY);
-     
-     // Bei Layer-Wechsel
-     visualEffects.createLayerChangeEffect(x, y, "AdvancedWalkingLayer");
-   </script>
-   ```
 
 ## Beispiele
 
-### Bewegungsübergänge mit Easing
+### Layer-Wechsel mit visuellen Effekten
 
-```java
-// Smooth Übergang zwischen zwei Zuständen
-MotionState startState = getMotionState(characterId);
-MotionState targetState = calculateNewState(direction, speed);
+Beim Wechsel zwischen verschiedenen Bewegungslayern (z.B. von `BasicWalkingLayer` zu `RunningLayer`) werden automatisch passende visuelle Effekte generiert:
 
-visualEffects.animateTransition(
-    startState, 
-    targetState, 
-    state -> updateCharacterState(state),
-    () -> onTransitionComplete()
-);
-```
+1. Animierte Übergänge für weiche Beschleunigung
+2. Passende Fußspuren für die jeweilige Gangart
+3. Layer-Wechsel-Partikeleffekte für sofortiges visuelles Feedback
 
-### Footstep-Erzeugung
+### Zielerfassung mit visuellen Effekten
 
-```java
-// Im Bewegungsupdate
-float strideDistance = calculateStrideDistance(layerType, speed);
-if (distanceTraveled >= strideDistance) {
-    footstepVisualizer.updateFootsteps(state, layerType);
-    distanceTraveled = 0;
-}
-```
+Wenn ein Charakter ein Ziel erreicht, wird ein visueller Effekt erzeugt:
 
-### Partikeleffekte
+1. Goldene Glitzerpartikel zur Hervorhebung
+2. Aufleuchtender Effekt
+3. Dynamische Bewegung der Partikel
 
-```java
-// Bei Zielerfassung
-particleSystem.createGoalReachedEmitter(position, 30);
+## Installation
 
-// Bei Layer-Wechsel
-particleSystem.updateEmitter(
-    transitionEmitterId, 
-    state.getPosition(),
-    ParticleConfig.createLayerTransitionConfig(newLayerType)
-);
-```
+Die visuellen Erweiterungen sind vollständig in das bestehende System integriert. Nach dem Merge dieses Branches stehen die Funktionen automatisch zur Verfügung.
+
+## Kompatibilität
+
+Die Erweiterungen wurden für optimale Kompatibilität konzipiert:
+
+- Vollständige Unterstützung für alle existierenden Layer-Typen
+- Fallback-Mechanismen für neue oder unbekannte Layer-Typen
+- Funktioniert sowohl im Online- als auch im Offline-Modus
+
+## Technische Details
+
+- Java-Backend mit Spring-Integration
+- Canvas-basiertes Frontend-Rendering
+- Optimierte Animations-Berechnungen
