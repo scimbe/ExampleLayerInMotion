@@ -10,15 +10,9 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    private final MotionWebSocketHandler motionWebSocketHandler;
-
-    public WebSocketConfig(MotionWebSocketHandler motionWebSocketHandler) {
-        this.motionWebSocketHandler = motionWebSocketHandler;
-    }
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(motionWebSocketHandler, "/motion-updates")
+        registry.addHandler(new MotionWebSocketHandler(), "/motion-updates")
                .setAllowedOrigins("*");  // In Produktion einschränken!
     }
 }

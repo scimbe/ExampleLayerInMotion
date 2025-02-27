@@ -1,6 +1,5 @@
 package com.example.motion.visual;
 
-import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.sys.model.MotionState;
 import com.example.motion.sys.model.Position;
 import com.example.motion.visual.animation.EasingFunctions;
@@ -33,7 +32,6 @@ public class VisualEffectsController {
     private static final Logger logger = LoggerFactory.getLogger(VisualEffectsController.class);
     private static final long UPDATE_INTERVAL_MS = 16; // ca. 60 FPS
     
-    private final ICharacterMotionService motionService;
     private final TransitionAnimator transitionAnimator;
     private final FootstepVisualizer footstepVisualizer;
     private final ParticleSystem particleSystem;
@@ -49,8 +47,7 @@ public class VisualEffectsController {
      * Erstellt einen neuen VisualEffectsController.
      */
     @Autowired
-    public VisualEffectsController(ICharacterMotionService motionService) {
-        this.motionService = motionService;
+    public VisualEffectsController() {
         this.transitionAnimator = new TransitionAnimator();
         this.footstepVisualizer = new FootstepVisualizer();
         this.particleSystem = new ParticleSystem();
