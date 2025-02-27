@@ -21,12 +21,16 @@ import java.util.concurrent.CompletableFuture;
 import com.example.motion.sys.model.Direction;
 import com.example.motion.sys.model.Vector3D;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/v1/characters")
 @Tag(name = "Character Controller", description = "API zur Steuerung von Charakteren")
 public class CharacterController {
 
     private final ICharacterMotionService motionService;
+    private static final Logger logger = LoggerFactory.getLogger(CharacterController.class);
 
     public CharacterController(ICharacterMotionService motionService) {
         this.motionService = motionService;
@@ -51,6 +55,8 @@ public class CharacterController {
             new Rotation(0, 0, 0),
             0.0f
         );
+        
+        logger.info("Character created with ID: {} at position ({}, {}, {})", characterId, request.getX(), request.getY(), request.getZ());
         
         return ResponseEntity.ok(new CharacterResponse(characterId, initialState));
     }

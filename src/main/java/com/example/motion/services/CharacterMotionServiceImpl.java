@@ -184,12 +184,14 @@ public class CharacterMotionServiceImpl implements ICharacterMotionService {
     }
 
     private MotionState createDefaultMotionState(UUID characterId) {
-        return new MotionState(
+        MotionState defaultState = new MotionState(
             characterId,
             new Position(0, 0, 0),
             new Rotation(0, 0, 0),
             0.0f
         );
+        System.out.println("Default motion state created for character ID: " + characterId);
+        return defaultState;
     }
 
     private void scheduleAnimationUpdates(UUID characterId, AnimationPlayback playback) {
