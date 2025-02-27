@@ -1,6 +1,5 @@
 package com.example.motion.websocket;
 
-import com.example.motion.interfaces.ICharacterMotionService;
 import com.example.motion.interfaces.MotionCallback;
 import com.example.motion.sys.model.MotionState;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,11 +17,9 @@ public class MotionWebSocketHandler extends TextWebSocketHandler {
     
     private final Map<WebSocketSession, UUID> sessionCharacterMap = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
-    private final ICharacterMotionService motionService;
 
-    public MotionWebSocketHandler(ObjectMapper objectMapper, ICharacterMotionService motionService) {
+    public MotionWebSocketHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.motionService = motionService;
     }
 
     @Override
@@ -30,13 +27,6 @@ public class MotionWebSocketHandler extends TextWebSocketHandler {
         // Optional: Weise Session einem Character zu und registriere Callback
         UUID characterId = UUID.randomUUID();
         sessionCharacterMap.put(session, characterId);
-        
-        motionService.registerMotionCallback(characterId, new MotionCallback() {
-            @Override
-            public void onMotionUpdate(UUID charactId, MotionState newState) {
-                sendMotionUpdate(charactId, newState);
-            }
-        });
     }
 
     public void sendMotionUpdate(UUID characterId, MotionState state) {
