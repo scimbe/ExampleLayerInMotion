@@ -1,0 +1,219 @@
+/* Magneteffekt-Stile */
+
+/* Magnetischer Pulseffekt bei Klick */
+.magnetic-pulse {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(65, 105, 225, 0.6) 0%, rgba(65, 105, 225, 0) 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: magnetPulse 1s ease-out forwards;
+    z-index: 5;
+}
+
+/* Bewegungstyp-Anzeige */
+.movement-type-indicator {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(44, 62, 80, 0.8);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 100;
+}
+
+.movement-type-indicator.visible {
+    opacity: 1;
+}
+
+/* Einführungsoverlay */
+.intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.intro-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.intro-content h2 {
+    color: #3498db;
+    margin-bottom: 15px;
+}
+
+.intro-content p {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.intro-content ul {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.intro-content li {
+    margin-bottom: 8px;
+}
+
+.intro-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.intro-button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.intro-button:hover {
+    background-color: #2980b9;
+}
+
+/* Canvas-Steuerungshinweis */
+.canvas-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(52, 152, 219, 0.9);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.canvas-hint.visible {
+    opacity: 1;
+}
+
+.canvas-hint p {
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.magnet-icon {
+    font-size: 2rem;
+    display: block;
+    margin-top: 10px;
+}
+
+/* Tabs für die Steuerung */
+.control-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.control-tab {
+    padding: 8px 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.control-tab:hover {
+    background-color: #e9ecef;
+}
+
+.control-tab.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Animations für den Magneteffekt */
+@keyframes magnetPulse {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.5);
+    }
+}
+
+/* Infoleiste mit Tipps */
+.canvas-info-bar {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(52, 152, 219, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .canvas-hint {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .magnetic-pulse {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .movement-type-indicator {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+    
+    .intro-content {
+        padding: 20px;
+    }
+}
+
+/* Das Game-Board als Touchfläche hervorheben */
+.game-board {
+    cursor: pointer;
+    touch-action: none; /* Verhindert Browser-Standardverhalten bei Touch */
+}

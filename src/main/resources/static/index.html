@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motion Master - Charakterbewegungsspiel</title>
+    <title>Motion Master - Magnetische Steuerung</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/visual-effects.css">
+    <link rel="stylesheet" href="css/magnet-effects.css">
 </head>
 <body>
     <div class="game-container">
@@ -22,63 +23,36 @@
                 <canvas id="gameCanvas" width="600" height="400"></canvas>
                 <div id="goals"></div>
                 <div id="messages"></div>
+                <div class="canvas-info-bar">Tippe auf dem Spielfeld, um den Magneten zu steuern</div>
             </div>
 
             <div class="controls">
                 <!-- Tabs für bessere mobile Übersicht -->
                 <div class="control-tabs">
-                    <button class="control-tab" data-target="movementTab">Bewegung</button>
                     <button class="control-tab" data-target="layersTab">Bewegungsarten</button>
+                    <button class="control-tab" data-target="animationsTab">Animationen</button>
                     <button class="control-tab" data-target="gameTab">Spiel</button>
                 </div>
                 
                 <!-- Tab-Inhalte -->
-                <div id="movementTab" class="tab-content">
-                    <div class="movement-controls">
-                        <h2>Bewegung</h2>
-                        <p class="instruction">Nutze die Steuerung oder tippe/wische direkt auf dem Spielfeld:</p>
-                        <div class="direction-buttons">
-                            <button id="moveUp" title="Nach oben bewegen">↑</button>
-                            <div class="horizontal-buttons">
-                                <button id="moveLeft" title="Nach links bewegen">←</button>
-                                <button id="moveStop" title="Bewegung anhalten">■</button>
-                                <button id="moveRight" title="Nach rechts bewegen">→</button>
-                            </div>
-                            <button id="moveDown" title="Nach unten bewegen">↓</button>
-                        </div>
-                    </div>
-                    
-                    <div class="animation-controls">
-                        <h2>Animationen</h2>
-                        <div class="tooltip">
-                            <button id="idleAnimation">Idle-Animation</button>
-                            <span class="tooltip-text">Ruhige Atembewegung im Stand</span>
-                        </div>
-                        <div class="tooltip">
-                            <button id="walkAnimation">Geh-Animation</button>
-                            <span class="tooltip-text">Grundlegende Schrittbewegung</span>
-                        </div>
-                    </div>
-                </div>
-
                 <div id="layersTab" class="tab-content">
                     <div class="layer-controls">
-                        <h2>Bewegungsart</h2>
+                        <h2>Bewegungsarten</h2>
                         <div class="tooltip">
                             <button id="walkingLayer" class="layer-button active">Gehen</button>
-                            <span class="tooltip-text">Einfache Gehbewegung mit normaler Geschwindigkeit</span>
+                            <span class="tooltip-text">Einfache Gehbewegung mit normaler Magnetkraft</span>
                         </div>
                         <div class="tooltip">
                             <button id="runningLayer" class="layer-button">Laufen</button>
-                            <span class="tooltip-text">Schnellere Bewegung mit Ausdauerverbrauch</span>
+                            <span class="tooltip-text">Stärkere Magnetkraft für schnellere Bewegung</span>
                         </div>
                         <div class="tooltip">
                             <button id="idleLayer" class="layer-button">Stehen</button>
-                            <span class="tooltip-text">Ruhezustand mit subtilen Atembewegungen</span>
+                            <span class="tooltip-text">Magnet im Ruhezustand ohne Anziehungskraft</span>
                         </div>
                         <div class="tooltip">
                             <button id="advancedWalkingLayer" class="layer-button">Erw. Gehen</button>
-                            <span class="tooltip-text">Erweitertes Gehen mit verschiedenen Gangarten</span>
+                            <span class="tooltip-text">Erweiterter Magnetismus mit verschiedenen Stärken</span>
                         </div>
                     </div>
 
@@ -86,15 +60,29 @@
                         <h2>Gangarten</h2>
                         <div class="tooltip">
                             <button id="normalGait" class="gait-button active">Normal</button>
-                            <span class="tooltip-text">Normale Gehbewegung mit ausgeglichenem Tempo</span>
+                            <span class="tooltip-text">Normale magnetische Anziehung</span>
                         </div>
                         <div class="tooltip">
                             <button id="sneakingGait" class="gait-button">Schleichen</button>
-                            <span class="tooltip-text">Langsame, vorsichtige Bewegung mit geringer Höhe</span>
+                            <span class="tooltip-text">Schwächere, aber präzisere magnetische Anziehung</span>
                         </div>
                         <div class="tooltip">
                             <button id="limpingGait" class="gait-button">Humpeln</button>
-                            <span class="tooltip-text">Asymmetrische Gehbewegung mit unregelmäßigem Rhythmus</span>
+                            <span class="tooltip-text">Ungleichmäßige, rhythmisch schwankende Anziehung</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="animationsTab" class="tab-content">
+                    <div class="animation-controls">
+                        <h2>Magnetanimationen</h2>
+                        <div class="tooltip">
+                            <button id="idleAnimation">Vibrations-Animation</button>
+                            <span class="tooltip-text">Lässt den Magneten sanft vibrieren</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="walkAnimation">Polwechsel-Animation</button>
+                            <span class="tooltip-text">Simuliert einen Wechsel der Magnetpole</span>
                         </div>
                     </div>
                 </div>
@@ -112,11 +100,11 @@
                         <div class="effects-options">
                             <div class="effects-toggle">
                                 <input type="checkbox" id="toggleFootsteps" checked>
-                                <label for="toggleFootsteps">Fußspuren anzeigen</label>
+                                <label for="toggleFootsteps">Magnetspuren anzeigen</label>
                             </div>
                             <div class="effects-toggle">
                                 <input type="checkbox" id="toggleParticles" checked>
-                                <label for="toggleParticles">Partikeleffekte anzeigen</label>
+                                <label for="toggleParticles">Magnetfeld anzeigen</label>
                             </div>
                         </div>
                     </div>
@@ -125,28 +113,28 @@
 
             <div id="character-info">
                 <h3>
-                    <span>Charakter-Status</span>
+                    <span>Magnetstatus</span>
                     <span id="activeLayer" class="status-value">-</span>
                 </h3>
                 <p><span>Position X:</span> <span id="posX">0</span></p>
                 <p><span>Position Y:</span> <span id="posY">0</span></p>
                 <p><span>Position Z:</span> <span id="posZ">0</span></p>
-                <p><span>Geschwindigkeit:</span> <span id="speed">0</span></p>
+                <p><span>Anziehungskraft:</span> <span id="speed">0</span></p>
             </div>
         </main>
 
         <!-- Game Anleitung -->
-        <div class="game-instructions">
-            <h2>Wie man spielt</h2>
+        <div class="user-guidance">
+            <h2>Magnetische Steuerung</h2>
             <p>
-                Motion Master demonstriert verschiedene Bewegungsarten in einem Layer-basierten System. 
-                Bewege den Charakter zum goldenen Ziel und experimentiere mit den verschiedenen Bewegungstypen!
+                Motion Master demonstriert verschiedene Bewegungsarten mit einem magnetischen Steuerungskonzept. 
+                Der Magnet wird vom Ort deiner Berührung auf dem Spielfeld angezogen!
             </p>
             <ul>
-                <li><strong>Direktsteuerung:</strong> Tippe und ziehe direkt auf dem Spielfeld</li>
-                <li><strong>Tastatursteuerung:</strong> WASD oder Pfeiltasten</li>
-                <li><strong>Bewegungstypen:</strong> Wechsle zwischen Gehen, Laufen und anderen Typen</li>
-                <li><strong>Erweiterte Bewegung:</strong> Im erweiterten Geh-Modus kannst du verschiedene Gangarten testen</li>
+                <li><strong>Magnetische Steuerung:</strong> Tippe auf dem Spielfeld, um den Magneten anzuziehen</li>
+                <li><strong>Magnettypen:</strong> Wechsle zwischen verschiedenen Magnetstärken und -eigenschaften</li>
+                <li><strong>Erweiterte Modi:</strong> Im erweiterten Modus kannst du verschiedene magnetische Verhaltensweisen testen</li>
+                <li><strong>Ziel:</strong> Ziehe den Magneten zu den metallischen Objekten, um Punkte zu sammeln</li>
             </ul>
         </div>
     </div>
