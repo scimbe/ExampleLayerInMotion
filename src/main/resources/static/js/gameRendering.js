@@ -1,10 +1,31 @@
-import { gameState } from './game.js';
-
+// Zeichnet den Charakter
 export function drawCharacter() {
+    if (!ctx) return;
+    
+    // Überprüfe, ob die Charakterposition gültig ist
+    if (isNaN(gameState.character.x) || isNaN(gameState.character.z)) {
+        console.error("Ungültige Charakterposition:", gameState.character);
+        // Zurücksetzen zur Mitte als Fallback
+        gameState.character.x = canvas.width / 2;
+        gameState.character.z = canvas.height / 2;
+    }
+    
     const x = gameState.character.x;
     const y = gameState.character.z; // Z-Position for Y-coordinate in 2D context
 
+    // Charakter in der Ecke erkennen und warnen
+    const minThreshold = 20;
+    if (x <= minThreshold && y <= minThreshold) {
+        console.warn("Charakter in der Ecke erkannt, Position:", x, y);
+    }
+    
     ctx.save();
+
+    // Hintergrundkreis für bessere Sichtbarkeit
+    ctx.beginPath();
+    ctx.arc(x, y, 17, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fill();
 
     // Character circle
     ctx.beginPath();
@@ -15,8 +36,10 @@ export function drawCharacter() {
         ctx.fillStyle = "#e74c3c"; // Red for running
     } else if (gameState.activeLayer === "IdleLayer") {
         ctx.fillStyle = "#2ecc71"; // Green for idle
+    } else if (gameState.activeLayer === "AdvancedWalkingLayer") {
+        ctx.fillStyle = "#9b59b6"; // Purple for advanced walking
     } else {
-        ctx.fillStyle = "#3498db"; // Blue for walking
+        ctx.fillStyle = "#3498db"; // Blue for basic walking
     }
 
     ctx.fill();
@@ -37,60 +60,19 @@ export function drawCharacter() {
     ctx.font = "10px Arial";
     ctx.fillStyle = "#333";
     ctx.textAlign = "center";
-    ctx.fillText(gameState.activeLayer.replace("Layer", ""), x, y - 20);
-
-    ctx.restore();
-}
-
-export function drawGrid() {
-    ctx.save();
-
-    ctx.strokeStyle = "#ecf0f1";
-    ctx.lineWidth = 0.5;
-
-    // Vertical lines
-    for (let x = 0; x < canvas.width; x += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
+    
+    // Layer-Anzeige mit Gangart (für AdvancedWalkingLayer)
+    let displayText = gameState.activeLayer.replace("Layer", "");
+    if (gameState.activeLayer === "AdvancedWalkingLayer") {
+        displayText += ` (${gameState.activeGait})`;
     }
+    
+    ctx.fillText(displayText, x, y - 20);
 
-    // Horizontal lines
-    for (let y = 0; y < canvas.height; y += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
+    ctx.restore();
+    
+    // Debug-Ausgabe
+    if (gameState.isMoving) {
+        console.log("Charakter gezeichnet bei:", x, y, "Layer:", gameState.activeLayer);
     }
-
-    ctx.restore();
-}
-
-export function drawGoal() {
-    const x = gameState.goalPosition.x;
-    const y = gameState.goalPosition.y;
-
-    ctx.save();
-
-    // Pulsing effect
-    const time = Date.now() / 1000;
-    const scale = 1 + Math.sin(time * 3) * 0.1;
-
-    // Goal circle
-    ctx.beginPath();
-    ctx.arc(x, y, 12 * scale, 0, Math.PI * 2);
-    ctx.fillStyle = "gold";
-    ctx.fill();
-    ctx.strokeStyle = "orange";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Goal text
-    ctx.font = "10px Arial";
-    ctx.fillStyle = "#333";
-    ctx.textAlign = "center";
-    ctx.fillText("GOAL", x, y - 15);
-
-    ctx.restore();
 }

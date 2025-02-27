@@ -1,9 +1,23 @@
-import { WS_URL, gameState } from './game.js';
+/**
+ * webSocketHandler.js
+ * Enthält Funktionen für die WebSocket-Kommunikation
+ */
 
+import { 
+    WS_URL, 
+    gameState, 
+    updateStatusDisplay, 
+    checkGoalCollision, 
+    updateConnectionStatus, 
+    updateLayerButtons 
+} from './game.js';
+
+// Stellt eine WebSocket-Verbindung her
 export function connectWebSocket() {
     if (typeof WebSocket === "undefined") {
-        console.warn("WebSocket is not supported by this browser");
+        console.warn("WebSocket wird von diesem Browser nicht unterstützt");
         gameState.offlineMode = true;
+        updateConnectionStatus();
         return;
     }
 
@@ -11,7 +25,7 @@ export function connectWebSocket() {
         try {
             gameState.webSocket.close();
         } catch (e) {
-            console.error("Error closing WebSocket:", e);
+            console.error("Fehler beim Schließen des WebSockets:", e);
         }
     }
 
@@ -19,8 +33,9 @@ export function connectWebSocket() {
         gameState.webSocket = new WebSocket(WS_URL);
 
         gameState.webSocket.onopen = () => {
-            console.log("WebSocket connected");
+            console.log("WebSocket verbunden");
             gameState.offlineMode = false;
+            updateConnectionStatus();
         };
 
         gameState.webSocket.onmessage = (event) => {
@@ -38,33 +53,43 @@ export function connectWebSocket() {
                         }
                         break;
                     case "ANIMATION_UPDATE":
-                        // Handle animation updates
+                        // Behandle Animations-Updates
                         break;
                     case "LAYER_UPDATE":
                         if (data.characterId === gameState.character.id) {
                             gameState.activeLayer = data.activeLayer;
-                            activeLayerElement.textContent = data.activeLayer;
                             updateLayerButtons(data.activeLayer);
+                            updateStatusDisplay();
                         }
                         break;
                 }
             } catch (error) {
-                console.error("Error processing WebSocket message:", error);
+                console.error("Fehler bei der Verarbeitung der WebSocket-Nachricht:", error);
             }
         };
 
         gameState.webSocket.onerror = (error) => {
-            console.error("WebSocket error:", error);
+            console.error("WebSocket-Fehler:", error);
             gameState.offlineMode = true;
+            updateConnectionStatus();
         };
 
         gameState.webSocket.onclose = () => {
-            console.log("WebSocket connection closed");
+            console.log("WebSocket-Verbindung geschlossen");
             gameState.offlineMode = true;
-            setTimeout(connectWebSocket, 3000);
+            updateConnectionStatus();
+            setTimeout(() => connectWebSocket(), 3000);
         };
     } catch (e) {
-        console.warn("Error connecting to WebSocket:", e);
+        console.warn("Fehler beim Verbinden mit WebSocket:", e);
         gameState.offlineMode = true;
+        updateConnectionStatus();
+    }
+}
+
+// Sendet eine Nachricht über den WebSocket
+export function sendWebSocketMessage(message) {
+    if (gameState.webSocket && gameState.webSocket.readyState === WebSocket.OPEN) {
+        gameState.webSocket.send(JSON.stringify(message));
     }
 }

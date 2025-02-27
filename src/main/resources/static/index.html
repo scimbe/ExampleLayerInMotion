@@ -25,103 +25,133 @@
             </div>
 
             <div class="controls">
-                <div class="movement-controls">
-                    <h2>Bewegung</h2>
-                    <div class="direction-buttons">
-                        <button id="moveUp" title="Nach oben bewegen">↑</button>
-                        <div class="horizontal-buttons">
-                            <button id="moveLeft" title="Nach links bewegen">←</button>
-                            <button id="moveStop" title="Bewegung anhalten">■</button>
-                            <button id="moveRight" title="Nach rechts bewegen">→</button>
+                <!-- Tabs für bessere mobile Übersicht -->
+                <div class="control-tabs">
+                    <button class="control-tab" data-target="movementTab">Bewegung</button>
+                    <button class="control-tab" data-target="layersTab">Bewegungsarten</button>
+                    <button class="control-tab" data-target="gameTab">Spiel</button>
+                </div>
+                
+                <!-- Tab-Inhalte -->
+                <div id="movementTab" class="tab-content">
+                    <div class="movement-controls">
+                        <h2>Bewegung</h2>
+                        <p class="instruction">Nutze die Steuerung oder tippe/wische direkt auf dem Spielfeld:</p>
+                        <div class="direction-buttons">
+                            <button id="moveUp" title="Nach oben bewegen">↑</button>
+                            <div class="horizontal-buttons">
+                                <button id="moveLeft" title="Nach links bewegen">←</button>
+                                <button id="moveStop" title="Bewegung anhalten">■</button>
+                                <button id="moveRight" title="Nach rechts bewegen">→</button>
+                            </div>
+                            <button id="moveDown" title="Nach unten bewegen">↓</button>
                         </div>
-                        <button id="moveDown" title="Nach unten bewegen">↓</button>
                     </div>
-                </div>
-
-                <div class="layer-controls">
-                    <h2>Bewegungsart</h2>
-                    <div class="tooltip">
-                        <button id="walkingLayer" class="layer-button active">Gehen</button>
-                        <span class="tooltip-text">Einfache Gehbewegung mit normaler Geschwindigkeit</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="runningLayer" class="layer-button">Laufen</button>
-                        <span class="tooltip-text">Schnellere Bewegung mit Ausdauerverbrauch</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="idleLayer" class="layer-button">Stehen</button>
-                        <span class="tooltip-text">Ruhezustand mit subtilen Atembewegungen</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="advancedWalkingLayer" class="layer-button">Erw. Gehen</button>
-                        <span class="tooltip-text">Erweitertes Gehen mit verschiedenen Gangarten</span>
-                    </div>
-                </div>
-
-                <div id="gaitControls" class="gait-controls">
-                    <h2>Gangarten</h2>
-                    <div class="tooltip">
-                        <button id="normalGait" class="gait-button active">Normal</button>
-                        <span class="tooltip-text">Normale Gehbewegung mit ausgeglichenem Tempo</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="sneakingGait" class="gait-button">Schleichen</button>
-                        <span class="tooltip-text">Langsame, vorsichtige Bewegung mit geringer Höhe</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="limpingGait" class="gait-button">Humpeln</button>
-                        <span class="tooltip-text">Asymmetrische Gehbewegung mit unregelmäßigem Rhythmus</span>
-                    </div>
-                </div>
-
-                <div class="animation-controls">
-                    <h2>Animationen</h2>
-                    <div class="tooltip">
-                        <button id="idleAnimation">Idle-Animation</button>
-                        <span class="tooltip-text">Ruhige Atembewegung im Stand</span>
-                    </div>
-                    <div class="tooltip">
-                        <button id="walkAnimation">Geh-Animation</button>
-                        <span class="tooltip-text">Grundlegende Schrittbewegung</span>
-                    </div>
-                </div>
-
-                <div class="game-controls">
-                    <h2>Spiel</h2>
-                    <button id="newGame">Neues Spiel</button>
-                    <button id="nextGoal">Nächstes Ziel</button>
-                    <button id="reconnect">Verbindung wiederherstellen</button>
-                </div>
-
-                <div class="visual-effects-controls">
-                    <h2>Visuelle Effekte</h2>
-                    <div class="effects-options">
-                        <div class="effects-toggle">
-                            <input type="checkbox" id="toggleFootsteps" checked>
-                            <label for="toggleFootsteps">Fußspuren anzeigen</label>
+                    
+                    <div class="animation-controls">
+                        <h2>Animationen</h2>
+                        <div class="tooltip">
+                            <button id="idleAnimation">Idle-Animation</button>
+                            <span class="tooltip-text">Ruhige Atembewegung im Stand</span>
                         </div>
-                        <div class="effects-toggle">
-                            <input type="checkbox" id="toggleParticles" checked>
-                            <label for="toggleParticles">Partikeleffekte anzeigen</label>
+                        <div class="tooltip">
+                            <button id="walkAnimation">Geh-Animation</button>
+                            <span class="tooltip-text">Grundlegende Schrittbewegung</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="layersTab" class="tab-content">
+                    <div class="layer-controls">
+                        <h2>Bewegungsart</h2>
+                        <div class="tooltip">
+                            <button id="walkingLayer" class="layer-button active">Gehen</button>
+                            <span class="tooltip-text">Einfache Gehbewegung mit normaler Geschwindigkeit</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="runningLayer" class="layer-button">Laufen</button>
+                            <span class="tooltip-text">Schnellere Bewegung mit Ausdauerverbrauch</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="idleLayer" class="layer-button">Stehen</button>
+                            <span class="tooltip-text">Ruhezustand mit subtilen Atembewegungen</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="advancedWalkingLayer" class="layer-button">Erw. Gehen</button>
+                            <span class="tooltip-text">Erweitertes Gehen mit verschiedenen Gangarten</span>
+                        </div>
+                    </div>
+
+                    <div id="gaitControls" class="gait-controls">
+                        <h2>Gangarten</h2>
+                        <div class="tooltip">
+                            <button id="normalGait" class="gait-button active">Normal</button>
+                            <span class="tooltip-text">Normale Gehbewegung mit ausgeglichenem Tempo</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="sneakingGait" class="gait-button">Schleichen</button>
+                            <span class="tooltip-text">Langsame, vorsichtige Bewegung mit geringer Höhe</span>
+                        </div>
+                        <div class="tooltip">
+                            <button id="limpingGait" class="gait-button">Humpeln</button>
+                            <span class="tooltip-text">Asymmetrische Gehbewegung mit unregelmäßigem Rhythmus</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gameTab" class="tab-content">
+                    <div class="game-controls">
+                        <h2>Spiel</h2>
+                        <button id="newGame">Neues Spiel</button>
+                        <button id="nextGoal">Nächstes Ziel</button>
+                        <button id="reconnect">Verbindung wiederherstellen</button>
+                    </div>
+
+                    <div class="visual-effects-controls">
+                        <h2>Visuelle Effekte</h2>
+                        <div class="effects-options">
+                            <div class="effects-toggle">
+                                <input type="checkbox" id="toggleFootsteps" checked>
+                                <label for="toggleFootsteps">Fußspuren anzeigen</label>
+                            </div>
+                            <div class="effects-toggle">
+                                <input type="checkbox" id="toggleParticles" checked>
+                                <label for="toggleParticles">Partikeleffekte anzeigen</label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div id="character-info">
+                <h3>
+                    <span>Charakter-Status</span>
+                    <span id="activeLayer" class="status-value">-</span>
+                </h3>
+                <p><span>Position X:</span> <span id="posX">0</span></p>
+                <p><span>Position Y:</span> <span id="posY">0</span></p>
+                <p><span>Position Z:</span> <span id="posZ">0</span></p>
+                <p><span>Geschwindigkeit:</span> <span id="speed">0</span></p>
+            </div>
         </main>
 
-        <div id="character-info">
-            <h3>
-                <span>Charakter-Status</span>
-                <span id="activeLayer" class="status-value">-</span>
-            </h3>
-            <p><span>Position X:</span> <span id="posX">0</span></p>
-            <p><span>Position Y:</span> <span id="posY">0</span></p>
-            <p><span>Position Z:</span> <span id="posZ">0</span></p>
-            <p><span>Geschwindigkeit:</span> <span id="speed">0</span></p>
+        <!-- Game Anleitung -->
+        <div class="game-instructions">
+            <h2>Wie man spielt</h2>
+            <p>
+                Motion Master demonstriert verschiedene Bewegungsarten in einem Layer-basierten System. 
+                Bewege den Charakter zum goldenen Ziel und experimentiere mit den verschiedenen Bewegungstypen!
+            </p>
+            <ul>
+                <li><strong>Direktsteuerung:</strong> Tippe und ziehe direkt auf dem Spielfeld</li>
+                <li><strong>Tastatursteuerung:</strong> WASD oder Pfeiltasten</li>
+                <li><strong>Bewegungstypen:</strong> Wechsle zwischen Gehen, Laufen und anderen Typen</li>
+                <li><strong>Erweiterte Bewegung:</strong> Im erweiterten Geh-Modus kannst du verschiedene Gangarten testen</li>
+            </ul>
         </div>
     </div>
 
-    <script src="js/game.js"></script>
-    <script src="js/visual-effects.js"></script>
+    <script type="module" src="js/game.js"></script>
+    <script type="module" src="js/visual-effects.js"></script>
 </body>
 </html>

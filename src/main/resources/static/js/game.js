@@ -1,21 +1,17 @@
 /**
- * Motion Master Game
- * Ein Spiel zur Demonstration der Layer-basierten Charakterbewegung
+ * game.js
+ * Hauptdatei mit dem Spielstatus und gemeinsamen Funktionen
  */
 
-import { moveCharacter, stopCharacter, setActiveLayer } from './characterMovement.js';
-import { connectWebSocket } from './webSocketHandler.js';
-import { drawCharacter, drawGrid, drawGoal } from './gameRendering.js';
-
 // ---- Konfiguration ----
-const API_BASE_URL = "/api/v1";
-const WS_URL = "ws://" + window.location.host + "/motion-updates";
-const CANVAS_UPDATE_RATE = 60; // FPS
-const GRID_SIZE = 20; // Größe der Gitterzellen in Pixeln
-const DEFAULT_SPEED = 1.0;
+export const API_BASE_URL = "/api/v1";
+export const GRID_SIZE = 20; // Größe der Gitterzellen in Pixeln
+export const DEFAULT_SPEED = 1.0;
+export const MAGNET_FORCE = 0.05; // Stärke des Magneteffekts (0-1)
+export const MAX_SPEED = 3.0; // Maximale Geschwindigkeit
 
 // ---- Spielzustand ----
-const gameState = {
+export const gameState = {
     character: {
         id: null,
         x: 0,
@@ -26,7 +22,13 @@ const gameState = {
         rotationY: 0,
         rotationZ: 0
     },
+    pointer: {
+        active: false,
+        x: 0,
+        y: 0
+    },
     activeLayer: "BasicWalkingLayer",
+    activeGait: "NORMAL",
     score: 0,
     goalPosition: { x: 0, y: 0 },
     webSocket: null,
@@ -34,259 +36,53 @@ const gameState = {
     isMoving: false,
     currentAnimation: null,
     goals: [],
-    offlineMode: false
+    offlineMode: false,
+    firstInteraction: true  // Tracking für erste Benutzerinteraktion
 };
 
 // ---- DOM-Elemente ----
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const posXElement = document.getElementById("posX");
-const posYElement = document.getElementById("posY");
-const posZElement = document.getElementById("posZ");
-const speedElement = document.getElementById("speed");
-const activeLayerElement = document.getElementById("activeLayer");
-const scoreElement = document.getElementById("scoreValue");
-const messageElement = document.getElementById("messages");
-const goalsElement = document.getElementById("goals");
+export let canvas;
+export let ctx;
+export let posXElement;
+export let posYElement;
+export let posZElement;
+export let speedElement;
+export let activeLayerElement;
+export let scoreElement;
+export let messageElement;
+export let goalsElement;
+export let connectionStatusElement;
 
-// ---- Canvas-Setup ----
-function setupCanvas() {
-    // Passe Canvas-Größe an Container an
-    const container = document.querySelector(".game-board");
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
+// ---- Hilfsfunktionen ----
+
+// Zeigt eine Nachricht an
+export function showMessage(message, duration = 3000) {
+    if (!messageElement) return;
     
-    // Initialen Charakter zeichnen
-    drawCharacter();
+    messageElement.textContent = message;
+    messageElement.style.opacity = 1;
+    
+    setTimeout(() => {
+        messageElement.style.opacity = 0;
+    }, duration);
 }
 
-// ---- Netzwerkkommunikation ----
-
-// Erstellt einen neuen Charakter
-async function createCharacter() {
-    try {
-        try {
-            const response = await fetch(`${API_BASE_URL}/characters`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    x: canvas.width / 2,
-                    y: 0,
-                    z: canvas.height / 2
-                })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                gameState.character.id = data.characterId;
-                updateCharacterState(data);
-                gameState.offlineMode = false;
-                console.log(`Character created with ID: ${data.characterId} at position (${data.x}, ${data.y}, ${data.z})`);
-                return data;
-            }
-        } catch (e) {
-            console.warn("API nicht verfügbar, verwende Mock-Daten", e);
-            gameState.offlineMode = true;
-        }
-        
-        // Fallback zu Mock-Daten
-        if (gameState.offlineMode) {
-            const mockCharacter = {
-                characterId: "mock-" + Math.random().toString(36).substring(2, 9),
-                x: canvas.width / 2,
-                y: 0,
-                z: canvas.height / 2,
-                speed: 0,
-                rotationX: 0,
-                rotationY: 0,
-                rotationZ: 0
-            };
-            gameState.character.id = mockCharacter.characterId;
-            updateCharacterState(mockCharacter);
-            showMessage("Offline-Modus aktiviert");
-            return mockCharacter;
-        }
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler beim Erstellen des Charakters:", error);
+// Aktualisiert die Statusanzeige
+export function updateStatusDisplay() {
+    if (!posXElement || !posYElement || !posZElement || !speedElement) return;
+    
+    posXElement.textContent = gameState.character.x.toFixed(2);
+    posYElement.textContent = gameState.character.y.toFixed(2);
+    posZElement.textContent = gameState.character.z.toFixed(2);
+    speedElement.textContent = gameState.character.speed.toFixed(2);
+    
+    if (activeLayerElement) {
+        activeLayerElement.textContent = gameState.activeLayer;
     }
 }
-
-// Spielt eine Animation ab
-async function playAnimation(animationId, speed = 1.0) {
-    if (!gameState.character.id) return;
-    
-    try {
-        gameState.currentAnimation = animationId;
-        
-        // Online-Modus: API aufrufen
-        if (!gameState.offlineMode) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/animate`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        animationId: animationId,
-                        speed: speed
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateCharacterState(data);
-                    return data;
-                }
-            } catch (e) {
-                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
-                gameState.offlineMode = true;
-            }
-        }
-        
-        // Offline-Modus: Animation simulieren
-        if (gameState.offlineMode) {
-            showMessage(`Animation: ${animationId}`);
-        }
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler beim Abspielen der Animation:", error);
-    }
-}
-
-// Entfernt einen Layer
-async function removeLayer(layerClassName) {
-    try {
-        // Online-Modus: API aufrufen
-        if (!gameState.offlineMode) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/layers/${encodeURIComponent('com.example.motion.sys.behavior.' + layerClassName)}`, {
-                    method: "DELETE"
-                });
-                
-                if (response.ok) {
-                    return true;
-                }
-            } catch (e) {
-                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
-                gameState.offlineMode = true;
-            }
-        }
-        
-        // Offline-Modus: Keine spezielle Behandlung nötig
-        return true;
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler beim Entfernen des Layers:", error);
-    }
-}
-
-// ---- Spiellogik ----
-
-// Initialisiert das Spiel
-async function initGame() {
-    setupCanvas();
-    
-    try {
-        connectWebSocket();
-    } catch (e) {
-        console.warn("WebSocket konnte nicht initialisiert werden:", e);
-        gameState.offlineMode = true;
-    }
-    
-    try {
-        await createCharacter();
-        await setActiveLayer("BasicWalkingLayer");
-        generateNewGoal();
-        startGameLoop();
-        showMessage("Spiel gestartet! Erreiche die Ziele.");
-    } catch (error) {
-        showMessage("Fehler beim Starten des Spiels: " + error.message);
-        console.error("Fehler beim Starten des Spiels:", error);
-        
-        // Notfall-Fallback: Spiel trotzdem starten
-        gameState.offlineMode = true;
-        gameState.character.id = "fallback-" + Math.random().toString(36).substring(2, 9);
-        gameState.character.x = canvas.width / 2;
-        gameState.character.z = canvas.height / 2;
-        generateNewGoal();
-        startGameLoop();
-    }
-}
-
-// Startet die Spielschleife
-function startGameLoop() {
-    if (gameState.gameLoopId) {
-        cancelAnimationFrame(gameState.gameLoopId);
-    }
-    
-    function gameLoop() {
-        // Canvas leeren
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Spielfeld zeichnen
-        drawGrid();
-        
-        // Ziel zeichnen
-        drawGoal();
-        
-        // Charakter zeichnen
-        drawCharacter();
-        
-        // Offline-Modus-Anzeige
-        if (gameState.offlineMode) {
-            ctx.save();
-            ctx.font = "12px Arial";
-            ctx.fillStyle = "#e74c3c";
-            ctx.textAlign = "left";
-            ctx.fillText("OFFLINE MODUS", 10, 20);
-            ctx.restore();
-        }
-        
-        // Weiter animieren
-        gameState.gameLoopId = requestAnimationFrame(gameLoop);
-    }
-    
-    gameState.gameLoopId = requestAnimationFrame(gameLoop);
-}
-
-// Generiert ein neues zufälliges Ziel
-function generateNewGoal() {
-    const padding = 50; // Abstand vom Rand
-    
-    gameState.goalPosition = {
-        x: Math.random() * (canvas.width - 2 * padding) + padding,
-        y: Math.random() * (canvas.height - 2 * padding) + padding
-    };
-    
-    // Zeige Zielinformationen an
-    updateGoalsDisplay();
-}
-
-// Prüft auf Kollision mit dem Ziel
-function checkGoalCollision() {
-    const dx = gameState.character.x - gameState.goalPosition.x;
-    const dy = gameState.character.z - gameState.goalPosition.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    if (distance < 30) { // Kollisionsradius
-        // Ziel erreicht
-        gameState.score += 10;
-        scoreElement.textContent = gameState.score;
-        
-        // Nächstes Ziel generieren
-        generateNewGoal();
-        
-        showMessage("Ziel erreicht! +10 Punkte");
-    }
-}
-
-// ---- UI-Updates ----
 
 // Aktualisiert den Charakter-Status
-function updateCharacterState(data) {
+export function updateCharacterState(data) {
     gameState.character.x = data.x;
     gameState.character.y = data.y;
     gameState.character.z = data.z;
@@ -298,17 +94,8 @@ function updateCharacterState(data) {
     updateStatusDisplay();
 }
 
-// Aktualisiert die Statusanzeige
-function updateStatusDisplay() {
-    posXElement.textContent = gameState.character.x.toFixed(2);
-    posYElement.textContent = gameState.character.y.toFixed(2);
-    posZElement.textContent = gameState.character.z.toFixed(2);
-    speedElement.textContent = gameState.character.speed.toFixed(2);
-    activeLayerElement.textContent = gameState.activeLayer;
-}
-
 // Aktualisiert die Layer-Buttons
-function updateLayerButtons(activeLayer) {
+export function updateLayerButtons(activeLayer) {
     const layerButtons = document.querySelectorAll(".layer-button");
     
     layerButtons.forEach(button => {
@@ -317,107 +104,518 @@ function updateLayerButtons(activeLayer) {
         const buttonId = button.id;
         if ((buttonId === "walkingLayer" && activeLayer === "BasicWalkingLayer") ||
             (buttonId === "runningLayer" && activeLayer === "RunningLayer") ||
+            (buttonId === "advancedWalkingLayer" && activeLayer === "AdvancedWalkingLayer") ||
             (buttonId === "idleLayer" && activeLayer === "IdleLayer")) {
             button.classList.add("active");
         }
     });
+    
+    // Gangarten-Bereich nur anzeigen, wenn AdvancedWalkingLayer aktiv ist
+    const gaitControls = document.getElementById("gaitControls");
+    if (gaitControls) {
+        gaitControls.style.display = activeLayer === "AdvancedWalkingLayer" ? "block" : "none";
+    }
+    
+    // Aktualisiere auch die Movement-Type-Anzeige
+    updateMovementTypeIndicator(activeLayer);
 }
 
-// Zeigt eine Nachricht an
-function showMessage(message, duration = 3000) {
-    messageElement.textContent = message;
-    messageElement.style.opacity = 1;
+// Aktualisiert die Gait-Buttons (Gangarten)
+export function updateGaitButtons(gaitType) {
+    const gaitButtons = document.querySelectorAll(".gait-button");
     
+    gaitButtons.forEach(button => {
+        button.classList.remove("active");
+        
+        const buttonId = button.id;
+        if ((buttonId === "normalGait" && gaitType === "NORMAL") ||
+            (buttonId === "sneakingGait" && gaitType === "SNEAKING") ||
+            (buttonId === "limpingGait" && gaitType === "LIMPING")) {
+            button.classList.add("active");
+        }
+    });
+    
+    gameState.activeGait = gaitType;
+}
+
+// Aktualisiert die Bewegungstyp-Anzeige im Spielfeld
+export function updateMovementTypeIndicator(layerType) {
+    // Finde oder erstelle die Anzeige
+    let indicator = document.querySelector(".movement-type-indicator");
+    if (!indicator) {
+        indicator = document.createElement("div");
+        indicator.className = "movement-type-indicator";
+        const gameBoard = document.querySelector(".game-board");
+        if (gameBoard) {
+            gameBoard.appendChild(indicator);
+        }
+    }
+    
+    // Aktualisiere den Text basierend auf dem Layer-Typ
+    let displayText = "";
+    switch(layerType) {
+        case "BasicWalkingLayer":
+            displayText = "Gehen";
+            break;
+        case "RunningLayer":
+            displayText = "Laufen";
+            break;
+        case "IdleLayer":
+            displayText = "Stehen";
+            break;
+        case "AdvancedWalkingLayer":
+            displayText = `Erw. Gehen (${gameState.activeGait})`;
+            break;
+        default:
+            displayText = layerType.replace("Layer", "");
+    }
+    
+    indicator.textContent = displayText;
+    
+    // Zeige kurz an, dann ausblenden
+    indicator.classList.add("visible");
     setTimeout(() => {
-        messageElement.style.opacity = 0;
-    }, duration);
+        indicator.classList.remove("visible");
+    }, 2000);
+}
+
+// Prüft auf Kollision mit dem Ziel
+export function checkGoalCollision() {
+    if (!gameState.goalPosition) return;
+    
+    const dx = gameState.character.x - gameState.goalPosition.x;
+    const dy = gameState.character.z - gameState.goalPosition.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < 30) { // Kollisionsradius
+        // Ziel erreicht
+        gameState.score += 10;
+        if (scoreElement) {
+            scoreElement.textContent = gameState.score;
+        }
+        
+        // Visuelle Effekte für das Erreichen des Ziels
+        createScorePopup(gameState.goalPosition.x, gameState.goalPosition.y);
+        
+        // Nächstes Ziel generieren
+        generateNewGoal();
+        
+        showMessage("Ziel erreicht! +10 Punkte");
+        
+        // Visuelle Effekte für den Erfolg
+        const visualEffects = window.visualEffects;
+        if (visualEffects) {
+            visualEffects.createGoalReachedEffect(gameState.character.x, gameState.character.z, 30);
+        }
+    }
+}
+
+// Magneteffekt implementieren - zieht den Charakter zum Zielpunkt
+export function updateMagneticMovement() {
+    if (!gameState.pointer.active) {
+        // Wenn kein aktiver Pointer, Bewegung verlangsamen
+        gameState.character.speed *= 0.95;
+        if (gameState.character.speed < 0.01) {
+            gameState.character.speed = 0;
+            gameState.isMoving = false;
+        }
+        return;
+    }
+    
+    // Berechne Distanz und Richtung zum Zielpunkt
+    const dx = gameState.pointer.x - gameState.character.x;
+    const dy = gameState.pointer.y - gameState.character.z;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Wenn nahe am Ziel, Bewegung stoppen
+    if (distance < 5) {
+        gameState.pointer.active = false;
+        gameState.character.speed *= 0.9;
+        return;
+    }
+    
+    // Magnetische Anziehung - je näher, desto schwächer
+    const force = Math.min(MAGNET_FORCE * (1 + distance / 100), 0.2);
+    
+    // Normalisiere Richtungsvektor
+    const dirX = dx / distance;
+    const dirY = dy / distance;
+    
+    // Berechne neue Geschwindigkeit basierend auf Layer
+    let targetSpeed = DEFAULT_SPEED;
+    if (gameState.activeLayer === "RunningLayer") {
+        targetSpeed = DEFAULT_SPEED * 2.0;
+    } else if (gameState.activeLayer === "IdleLayer") {
+        targetSpeed = 0;
+        gameState.pointer.active = false;
+        return;
+    } else if (gameState.activeLayer === "AdvancedWalkingLayer") {
+        switch (gameState.activeGait) {
+            case "SNEAKING":
+                targetSpeed = DEFAULT_SPEED * 0.5;
+                break;
+            case "LIMPING":
+                targetSpeed = DEFAULT_SPEED * 0.7;
+                break;
+            default:
+                targetSpeed = DEFAULT_SPEED * 1.1;
+        }
+    }
+    
+    // Geschwindigkeit anpassen - natürlichere Beschleunigung
+    gameState.character.speed = gameState.character.speed * 0.95 + targetSpeed * 0.05;
+    if (gameState.character.speed > MAX_SPEED) gameState.character.speed = MAX_SPEED;
+    
+    // Bewegung anwenden
+    const moveSpeed = gameState.character.speed * gameState.pointer.active;
+    gameState.character.x += dirX * moveSpeed * force * 10;
+    gameState.character.z += dirY * moveSpeed * force * 10;
+    
+    // Bereichsgrenzen einhalten
+    if (canvas) {
+        const paddedWidth = canvas.width - 20;
+        const paddedHeight = canvas.height - 20;
+        gameState.character.x = Math.max(20, Math.min(gameState.character.x, paddedWidth));
+        gameState.character.z = Math.max(20, Math.min(gameState.character.z, paddedHeight));
+    }
+    
+    // Rotation an Bewegungsrichtung anpassen
+    gameState.character.rotationY = Math.atan2(dirX, dirY) * (180 / Math.PI);
+    
+    // Vertikale Bobbing-Bewegung für natürlicheres Aussehen
+    if (gameState.activeLayer === "BasicWalkingLayer" && moveSpeed > 0) {
+        const time = Date.now() / 500;
+        gameState.character.y = Math.sin(time) * 0.05;
+    }
+    
+    // Status aktualisieren
+    gameState.isMoving = moveSpeed > 0;
+    updateStatusDisplay();
+    checkGoalCollision();
+    
+    // Magnetfeld-Linien anzeigen
+    drawMagneticField();
+}
+
+// Zeichnet das Magnetfeld zwischen Ziel und Charakter
+function drawMagneticField() {
+    if (!ctx || !gameState.pointer.active) return;
+    
+    const charX = gameState.character.x;
+    const charY = gameState.character.z;
+    const targetX = gameState.pointer.x;
+    const targetY = gameState.pointer.y;
+    
+    // Zeichne Magnetfeld-Linien
+    ctx.save();
+    ctx.strokeStyle = 'rgba(65, 105, 225, 0.4)';
+    ctx.lineWidth = 2;
+    
+    // Distanz berechnen
+    const dx = targetX - charX;
+    const dy = targetY - charY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Anzahl der Linien basierend auf Distanz
+    const lineCount = Math.min(Math.max(3, Math.floor(distance / 30)), 8);
+    
+    // Zeichne gekrümmte Magnetfeld-Linien
+    for (let i = 0; i < lineCount; i++) {
+        const offset = (i - lineCount / 2) * 10;
+        
+        // Normalisierte Richtungsvektoren
+        const dirX = dx / distance;
+        const dirY = dy / distance;
+        
+        // Senkrechte Vektoren für Verschiebung
+        const perpX = -dirY;
+        const perpY = dirX;
+        
+        // Kurvenpunkte
+        const startX = charX + perpX * offset;
+        const startY = charY + perpY * offset;
+        const endX = targetX + perpX * offset;
+        const endY = targetY + perpY * offset;
+        
+        // Kontrollpunkte für die Kurve
+        const cp1x = charX + dx * 0.3 + perpX * offset * 1.5;
+        const cp1y = charY + dy * 0.3 + perpY * offset * 1.5;
+        const cp2x = charX + dx * 0.7 + perpX * offset * 1.5;
+        const cp2y = charY + dy * 0.7 + perpY * offset * 1.5;
+        
+        // Zeichne die Kurve
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+        ctx.stroke();
+    }
+    
+    ctx.restore();
+}
+
+// Erzeugt eine Punkte-Popup-Animation
+function createScorePopup(x, y) {
+    const popup = document.createElement("div");
+    popup.className = "score-popup";
+    popup.textContent = "+10";
+    popup.style.left = x + "px";
+    popup.style.top = y + "px";
+    
+    const gameBoard = document.querySelector(".game-board");
+    if (gameBoard) {
+        gameBoard.appendChild(popup);
+        
+        // Entferne das Element nach der Animation
+        setTimeout(() => {
+            popup.remove();
+        }, 1000);
+    }
+}
+
+// Generiert ein neues zufälliges Ziel
+export function generateNewGoal() {
+    const padding = 50; // Abstand vom Rand
+    
+    if (!canvas) return;
+    
+    gameState.goalPosition = {
+        x: Math.random() * (canvas.width - 2 * padding) + padding,
+        y: Math.random() * (canvas.height - 2 * padding) + padding
+    };
+    
+    // Zeige Zielinformationen an
+    updateGoalsDisplay();
 }
 
 // Aktualisiert die Zielanzeige
-function updateGoalsDisplay() {
+export function updateGoalsDisplay() {
+    if (!goalsElement || !gameState.goalPosition) return;
+    
     goalsElement.innerHTML = `
         <div>
-            <strong>Aktuelles Ziel:</strong>
-            <p>X: ${gameState.goalPosition.x.toFixed(2)}, Y: ${gameState.goalPosition.y.toFixed(2)}</p>
+            <strong>Aktuelles Ziel</strong>
+            <p>X: ${gameState.goalPosition.x.toFixed(0)}, Y: ${gameState.goalPosition.y.toFixed(0)}</p>
         </div>
     `;
 }
 
-// ---- Event-Listener ----
-
-// Bewegungsbuttons
-document.getElementById("moveUp").addEventListener("click", () => moveCharacter(0, 0, -1));
-document.getElementById("moveDown").addEventListener("click", () => moveCharacter(0, 0, 1));
-document.getElementById("moveLeft").addEventListener("click", () => moveCharacter(-1, 0, 0));
-document.getElementById("moveRight").addEventListener("click", () => moveCharacter(1, 0, 0));
-
-// Layer-Buttons
-document.getElementById("walkingLayer").addEventListener("click", async () => {
-    // Andere Layer entfernen
-    await removeLayer("RunningLayer");
-    await removeLayer("IdleLayer");
-    await setActiveLayer("BasicWalkingLayer");
-});
-
-document.getElementById("runningLayer").addEventListener("click", async () => {
-    // Andere Layer entfernen
-    await removeLayer("BasicWalkingLayer");
-    await removeLayer("IdleLayer");
-    await setActiveLayer("RunningLayer");
-});
-
-document.getElementById("idleLayer").addEventListener("click", async () => {
-    // Andere Layer entfernen
-    await removeLayer("BasicWalkingLayer");
-    await removeLayer("RunningLayer");
-    await setActiveLayer("IdleLayer");
-});
-
-// Animations-Buttons
-document.getElementById("idleAnimation").addEventListener("click", () => playAnimation("idle_breathing"));
-document.getElementById("walkAnimation").addEventListener("click", () => playAnimation("basic_walk"));
-
-// Spiel-Buttons
-document.getElementById("newGame").addEventListener("click", () => {
-    gameState.score = 0;
-    scoreElement.textContent = gameState.score;
-    stopCharacter();
-    generateNewGoal();
-    showMessage("Neues Spiel gestartet!");
-});
-
-document.getElementById("nextGoal").addEventListener("click", () => {
-    generateNewGoal();
-    showMessage("Neues Ziel generiert!");
-});
-
-// Tastatur-Steuerung
-document.addEventListener("keydown", (event) => {
-    switch(event.key) {
-        case "ArrowUp":
-        case "w":
-            moveCharacter(0, 0, -1);
-            break;
-        case "ArrowDown":
-        case "s":
-            moveCharacter(0, 0, 1);
-            break;
-        case "ArrowLeft":
-        case "a":
-            moveCharacter(-1, 0, 0);
-            break;
-        case "ArrowRight":
-        case "d":
-            moveCharacter(1, 0, 0);
-            break;
-        case " ": // Leertaste
-            stopCharacter();
-            break;
+// Aktualisiert die Verbindungsanzeige
+export function updateConnectionStatus() {
+    if (!connectionStatusElement) return;
+    
+    if (gameState.offlineMode) {
+        connectionStatusElement.textContent = "Offline";
+        connectionStatusElement.className = "connection-status status-offline";
+    } else {
+        connectionStatusElement.textContent = "Online";
+        connectionStatusElement.className = "connection-status status-online";
     }
+}
+
+// Fügt die Touch/Maus-Event-Listener zum Canvas hinzu
+export function setupCanvasControls() {
+    if (!canvas) return;
+    
+    // Maus-Bewegung
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        gameState.pointer.x = e.clientX - rect.left;
+        gameState.pointer.y = e.clientY - rect.top;
+        gameState.pointer.active = true;
+        
+        // Magneteffekt-Animation starten
+        showMagneticPulse(gameState.pointer.x, gameState.pointer.y);
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (!gameState.pointer.active) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        gameState.pointer.x = e.clientX - rect.left;
+        gameState.pointer.y = e.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        // Magnetwirkung langsam ausklingen lassen
+        // Die eigentliche Bewegung wird über updateMagneticMovement() verlangsamt
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        gameState.pointer.active = false;
+    });
+    
+    // Touch-Bewegung
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        gameState.pointer.x = e.touches[0].clientX - rect.left;
+        gameState.pointer.y = e.touches[0].clientY - rect.top;
+        gameState.pointer.active = true;
+        
+        // Magneteffekt-Animation starten
+        showMagneticPulse(gameState.pointer.x, gameState.pointer.y);
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!gameState.pointer.active) return;
+        
+        const rect = canvas.getBoundingClientRect();
+        gameState.pointer.x = e.touches[0].clientX - rect.left;
+        gameState.pointer.y = e.touches[0].clientY - rect.top;
+    });
+    
+    canvas.addEventListener('touchend', () => {
+        // Magnetwirkung ausklingen lassen
+    });
+}
+
+// Zeigt eine visuelle Pulsanimation für den Magneten an
+function showMagneticPulse(x, y) {
+    const pulse = document.createElement("div");
+    pulse.className = "magnetic-pulse";
+    pulse.style.left = x + "px";
+    pulse.style.top = y + "px";
+    
+    const gameBoard = document.querySelector(".game-board");
+    if (gameBoard) {
+        gameBoard.appendChild(pulse);
+        
+        // Nach der Animation entfernen
+        setTimeout(() => {
+            pulse.remove();
+        }, 1000);
+    }
+}
+
+// Zeigt eine Einführung für neue Benutzer an
+export function showIntroductionOverlay() {
+    // Erstelle Overlay-Element
+    const overlay = document.createElement("div");
+    overlay.className = "intro-overlay";
+    
+    overlay.innerHTML = `
+        <div class="intro-content">
+            <h2>Willkommen bei Motion Master!</h2>
+            <p>Erkunde die verschiedenen Bewegungsarten in diesem interaktiven Spiel.</p>
+            
+            <ul>
+                <li><strong>Ziel des Spiels:</strong> Bewege den Charakter zu den goldenen Zielen.</li>
+                <li><strong>Steuerung:</strong> Der Charakter wird wie ein Magnet zu deiner Berührung gezogen.</li>
+                <li><strong>Bewegungsarten:</strong> Wechsle zwischen Gehen, Laufen und anderen Bewegungstypen.</li>
+                <li><strong>Gangarten:</strong> Im erweiterten Geh-Modus kannst du verschiedene Gangarten ausprobieren.</li>
+            </ul>
+            
+            <p>Experimentiere mit den verschiedenen Bewegungsarten und beobachte die Unterschiede!</p>
+            
+            <div class="intro-buttons">
+                <button class="intro-button" id="start-game-btn">Spiel starten</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Event-Listener für den Start-Button
+    document.getElementById("start-game-btn").addEventListener("click", () => {
+        overlay.remove();
+        
+        // Zeige Canvas-Steuerungshinweis
+        showCanvasHint();
+    });
+}
+
+// Zeigt einen Hinweis zur Canvas-Steuerung an
+export function showCanvasHint() {
+    const hint = document.createElement("div");
+    hint.className = "canvas-hint";
+    hint.innerHTML = `
+        <p>Tippe auf dem Spielfeld, um den Magneten zu steuern</p>
+        <span class="magnet-icon">🧲</span>
+    `;
+    
+    const gameBoard = document.querySelector(".game-board");
+    if (gameBoard) {
+        gameBoard.appendChild(hint);
+        
+        // Nach einem kurzen Moment einblenden
+        setTimeout(() => {
+            hint.classList.add("visible");
+        }, 100);
+        
+        // Nach einiger Zeit wieder ausblenden
+        setTimeout(() => {
+            hint.classList.remove("visible");
+            setTimeout(() => hint.remove(), 1000);
+        }, 5000);
+    }
+}
+
+// Wird aufgerufen, wenn sich das Dokument geladen hat
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM-Elemente initialisieren
+    canvas = document.getElementById("gameCanvas");
+    ctx = canvas? canvas.getContext("2d") : null;
+    posXElement = document.getElementById("posX");
+    posYElement = document.getElementById("posY");
+    posZElement = document.getElementById("posZ");
+    speedElement = document.getElementById("speed");
+    activeLayerElement = document.getElementById("activeLayer");
+    scoreElement = document.getElementById("scoreValue");
+    messageElement = document.getElementById("messages");
+    goalsElement = document.getElementById("goals");
+    connectionStatusElement = document.getElementById("connectionStatus");
+    
+    // Tab-Steuerung einrichten
+    setupTabs();
+    
+    // Import weiterer Module und Initialisierung des Spiels
+    import('./gameInit.js')
+        .then(module => {
+            module.initializeGame();
+            
+            // Einführung anzeigen, wenn es der erste Besuch ist
+            if (!localStorage.getItem('motionMasterIntroShown')) {
+                localStorage.setItem('motionMasterIntroShown', 'true');
+                showIntroductionOverlay();
+            }
+        })
+        .catch(error => {
+            console.error("Fehler beim Laden der Spielinitialisierung:", error);
+            
+            // Notfall-Nachricht anzeigen
+            showMessage("Fehler beim Laden des Spiels! Bitte Seite neu laden.", 10000);
+        });
 });
 
-// Fenster-Resize-Handling
-window.addEventListener("resize", setupCanvas);
-
-// ---- Spiel starten ----
-window.addEventListener("load", initGame);
+// Tab-Steuerung einrichten
+function setupTabs() {
+    const tabs = document.querySelectorAll('.control-tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Wenn keine Tabs vorhanden sind, beende die Funktion
+    if (tabs.length === 0) return;
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Aktiven Tab setzen
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Aktiven Tab-Inhalt anzeigen
+            const targetId = tab.getAttribute('data-target');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === targetId) {
+                    content.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    // Initial den ersten Tab aktivieren
+    if (tabs.length > 0 && tabContents.length > 0) {
+        tabs[0].classList.add('active');
+        tabContents[0].classList.add('active');
+    }
+}

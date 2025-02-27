@@ -1,60 +1,81 @@
 /* Motion Master Game Styles */
+/* Mobile-First Design */
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
+    touch-action: manipulation;
+}
+
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --running-color: #e74c3c;
+    --idle-color: #2ecc71;
+    --advanced-color: #9b59b6;
+    --text-color: #333;
+    --bg-color: #f5f5f5;
+    --container-bg: white;
+    --border-color: #ddd;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --grid-color: #ecf0f1;
+    --goal-color: gold;
+    --goal-border: orange;
+    --highlight-color: #f39c12;
 }
 
 body {
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     line-height: 1.6;
-    padding: 20px;
+    font-size: 16px;
+    padding: 10px;
 }
 
 .game-container {
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
-    background-color: white;
+    background-color: var(--container-bg);
     border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+    box-shadow: 0 0 15px var(--shadow-color);
+    padding: 15px;
 }
 
 header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
+    flex-direction: column;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 h1 {
     color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
 }
 
 h2 {
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    color: #3498db;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: var(--primary-color);
 }
 
 .header-controls {
     display: flex;
-    align-items: center;
-    gap: 15px;
+    justify-content: space-between;
+    width: 100%;
 }
 
 #score {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: bold;
-    background-color: #3498db;
+    background-color: var(--primary-color);
     color: white;
-    padding: 8px 15px;
-    border-radius: 20px;
+    padding: 5px 10px;
+    border-radius: 15px;
 }
 
 .connection-status {
@@ -65,40 +86,44 @@ h2 {
 }
 
 .status-online {
-    background-color: #2ecc71;
+    background-color: var(--idle-color);
     color: white;
 }
 
 .status-offline {
-    background-color: #e74c3c;
+    background-color: var(--running-color);
     color: white;
 }
 
 main {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .game-board {
     position: relative;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     overflow: hidden;
-    min-height: 400px;
+    height: 50vh;
+    min-height: 200px;
+    max-height: 50vh;
+    touch-action: none; /* Verhindert Browser-Scroll während Touch auf dem Canvas */
 }
 
 #gameCanvas {
-    background-color: #ecf0f1;
+    background-color: var(--grid-color);
     width: 100%;
     height: 100%;
     display: block;
+    touch-action: none;
 }
 
 #goals, #messages {
     position: absolute;
-    padding: 10px;
-    font-size: 0.9rem;
+    padding: 8px;
+    font-size: 0.8rem;
     border-radius: 5px;
     z-index: 10;
 }
@@ -107,35 +132,66 @@ main {
     top: 10px;
     left: 10px;
     background-color: rgba(255, 255, 255, 0.8);
-    max-width: 200px;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    max-width: 150px;
+    box-shadow: 0 0 5px var(--shadow-color);
 }
 
 #messages {
     bottom: 10px;
+    left: 10px;
     right: 10px;
-    background-color: rgba(52, 152, 219, 0.8);
+    background-color: rgba(52, 152, 219, 0.9);
     color: white;
-    padding: 10px 15px;
-    max-width: 300px;
-    min-width: 200px;
+    padding: 8px 12px;
+    max-width: none;
     text-align: center;
     transition: opacity 0.3s;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 10px var(--shadow-color);
+    opacity: 0;
 }
 
 .controls {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
-.movement-controls, .layer-controls, .animation-controls, .game-controls, .gait-controls {
+.control-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 10px;
+}
+
+.control-tab {
+    padding: 8px 15px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.control-tab.active {
+    border-bottom: 3px solid var(--primary-color);
+    opacity: 1;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.movement-controls, .layer-controls, .animation-controls, .game-controls, .gait-controls, .visual-effects-controls {
     background-color: #f8f9fa;
-    padding: 15px;
+    padding: 12px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     transition: all 0.3s ease;
+    margin-bottom: 15px;
 }
 
 .direction-buttons {
@@ -151,18 +207,19 @@ main {
 }
 
 button {
-    background-color: #3498db;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s, transform 0.1s;
+    font-size: 1rem;
 }
 
-button:hover {
-    background-color: #2980b9;
+button:hover, button:active {
+    background-color: var(--secondary-color);
 }
 
 button:active {
@@ -185,28 +242,45 @@ button:active {
 }
 
 .layer-button.active {
-    background-color: #27ae60;
+    background-color: var(--idle-color);
     box-shadow: 0 0 5px rgba(39, 174, 96, 0.5);
+}
+
+#walkingLayer.active {
+    background-color: var(--primary-color);
+}
+
+#runningLayer.active {
+    background-color: var(--running-color);
+}
+
+#idleLayer.active {
+    background-color: var(--idle-color);
+}
+
+#advancedWalkingLayer.active {
+    background-color: var(--advanced-color);
 }
 
 .gait-button {
     width: 100%;
     margin-bottom: 8px;
-    background-color: #3498db;
+    background-color: var(--primary-color);
 }
 
 .gait-button.active {
-    background-color: #9b59b6;
+    background-color: var(--advanced-color);
     box-shadow: 0 0 5px rgba(155, 89, 182, 0.5);
 }
 
 #idleAnimation, #walkAnimation {
     width: 100%;
     margin-bottom: 8px;
-    background-color: #9b59b6;
+    background-color: var(--advanced-color);
 }
 
-#idleAnimation:hover, #walkAnimation:hover {
+#idleAnimation:hover, #idleAnimation:active, 
+#walkAnimation:hover, #walkAnimation:active {
     background-color: #8e44ad;
 }
 
@@ -216,32 +290,35 @@ button:active {
 }
 
 #newGame, #reconnect {
-    background-color: #e74c3c;
+    background-color: var(--running-color);
 }
 
-#newGame:hover, #reconnect:hover {
+#newGame:hover, #newGame:active, 
+#reconnect:hover, #reconnect:active {
     background-color: #c0392b;
 }
 
 #character-info {
-    margin-top: 20px;
-    padding: 15px;
+    margin-top: 15px;
+    padding: 12px;
     background-color: #f8f9fa;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
 }
 
 #character-info h3 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: #2c3e50;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 1rem;
 }
 
 #character-info p {
     margin-bottom: 5px;
     font-family: monospace;
+    font-size: 0.9rem;
     display: flex;
     justify-content: space-between;
 }
@@ -256,8 +333,8 @@ button:active {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: gold;
-    border: 2px solid orange;
+    background-color: var(--goal-color);
+    border: 2px solid var(--goal-border);
     transform: translate(-50%, -50%);
     animation: pulse 1.5s infinite;
 }
@@ -267,8 +344,8 @@ button:active {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #3498db;
-    border: 2px solid #2980b9;
+    background-color: var(--primary-color);
+    border: 2px solid var(--secondary-color);
     transform: translate(-50%, -50%);
     z-index: 10;
     transition: left 0.3s, top 0.3s;
@@ -276,7 +353,7 @@ button:active {
 
 .score-popup {
     position: absolute;
-    color: #f39c12;
+    color: var(--highlight-color);
     font-weight: bold;
     font-size: 18px;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
@@ -317,7 +394,7 @@ button:active {
 
 .tooltip .tooltip-text {
     visibility: hidden;
-    width: 200px;
+    width: 150px;
     background-color: #2c3e50;
     color: white;
     text-align: center;
@@ -327,95 +404,224 @@ button:active {
     z-index: 1;
     bottom: 125%;
     left: 50%;
-    margin-left: -100px;
+    margin-left: -75px;
     opacity: 0;
     transition: opacity 0.3s;
     font-size: 0.8rem;
     pointer-events: none;
 }
 
-.tooltip:hover .tooltip-text {
+.tooltip:hover .tooltip-text,
+.tooltip:active .tooltip-text {
     visibility: visible;
     opacity: 1;
 }
 
-@media (max-width: 1024px) {
-    main {
-        grid-template-columns: 3fr 2fr;
-    }
+.effects-toggle {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
-@media (max-width: 768px) {
-    main {
-        grid-template-columns: 1fr;
-    }
-
-    .game-board {
-        min-height: 300px;
-    }
-    
-    .direction-buttons button {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
-    }
-    
-    .header-controls {
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 5px;
-    }
-    
-    h2 {
-        font-size: 1.1rem;
-    }
+.effects-toggle input[type="checkbox"] {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
 }
 
-@media (max-width: 480px) {
-    body {
-        padding: 10px;
-    }
-    
-    .game-container {
-        padding: 10px;
-    }
-    
-    .direction-buttons button {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
-    }
-    
-    #character-info {
-        font-size: 0.9rem;
-    }
+.effects-toggle label {
+    font-size: 0.9rem;
+    user-select: none;
 }
 
-/* New styles for user guidance elements */
-.user-guidance {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    margin-top: 15px;
+/* Einführungs-Overlay für neue Benutzer */
+.intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    color: white;
+    text-align: center;
+    padding: 20px;
 }
 
-.user-guidance h2 {
-    color: #3498db;
+.intro-content {
+    max-width: 80%;
+}
+
+.intro-content h2 {
+    margin-bottom: 15px;
+    color: white;
+    font-size: 1.3rem;
+}
+
+.intro-content p {
     margin-bottom: 10px;
-    font-size: 1.2rem;
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
-.user-guidance p {
-    margin-bottom: 10px;
-    line-height: 1.4;
-}
-
-.user-guidance ul {
-    list-style-type: disc;
+.intro-content ul {
+    text-align: left;
+    margin: 15px 0;
     padding-left: 20px;
 }
 
-.user-guidance ul li {
-    margin-bottom: 5px;
+.intro-content ul li {
+    margin-bottom: 8px;
+}
+
+.intro-buttons {
+    margin-top: 20px;
+}
+
+.intro-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+/* Canvas-Steuerungshinweis */
+.canvas-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 80%;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.canvas-hint.visible {
+    opacity: 1;
+}
+
+.canvas-hint p {
+    margin-bottom: 10px;
+}
+
+.swipe-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    display: block;
+    margin: 5px 0;
+}
+
+/* Media Queries für verschiedene Bildschirmgrößen */
+@media (min-width: 768px) {
+    .game-container {
+        max-width: 90%;
+        padding: 20px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .header-controls {
+        width: auto;
+        gap: 15px;
+    }
+    
+    main {
+        display: grid;
+        grid-template-columns: 3fr 2fr;
+        gap: 20px;
+    }
+    
+    .game-board {
+        height: 500px;
+        max-height: 60vh;
+        min-height: 400px;
+    }
+    
+    .character-info {
+        grid-column: span 2;
+    }
+}
+
+@media (min-width: 1024px) {
+    .game-container {
+        max-width: 80%;
+    }
+    
+    main {
+        grid-template-columns: 2fr 1fr;
+    }
+    
+    .game-board {
+        height: 600px;
+        max-height: 70vh;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.2rem;
+    }
+    
+    .direction-buttons button {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8rem;
+    }
+}
+
+/* Animationen für bessere visuelle Rückmeldung */
+@keyframes highlight {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.highlight {
+    animation: highlight 0.3s ease-in-out;
+}
+
+/* Anzeige für Charakterbewegungstyp */
+.movement-type-indicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.movement-type-indicator.visible {
+    opacity: 1;
 }

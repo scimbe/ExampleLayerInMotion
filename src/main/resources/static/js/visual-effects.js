@@ -3,6 +3,18 @@
  * Frontend-Komponente für die Darstellung und Verwaltung der visuellen Effekte
  */
 
+import { gameState, canvas, ctx } from './game.js';
+
+// Globale Variable für den Zugriff aus anderen Modulen
+window.visualEffects = null;
+
+// Initialisiert die visuellen Effekte
+export function initVisualEffects(canvas) {
+    const visualEffects = new VisualEffects(canvas);
+    window.visualEffects = visualEffects;
+    return visualEffects;
+}
+
 class VisualEffects {
     constructor(gameCanvas) {
         this.canvas = gameCanvas;
@@ -509,9 +521,4 @@ class VisualEffects {
             this.particles = [];
         }
     }
-}
-
-// Exportiere für die Verwendung in anderen Modulen
-if (typeof module !== 'undefined') {
-    module.exports = VisualEffects;
 }
