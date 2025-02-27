@@ -3,6 +3,7 @@ package com.example.motion.websocket;
 import com.example.motion.interfaces.MotionCallback;
 import com.example.motion.sys.model.MotionState;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -18,6 +19,7 @@ public class MotionWebSocketHandler extends TextWebSocketHandler {
     private final Map<WebSocketSession, UUID> sessionCharacterMap = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
 
+    @Autowired
     public MotionWebSocketHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
