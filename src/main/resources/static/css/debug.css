@@ -1,0 +1,116 @@
+/* style.css Ergänzungen für die Debug-Funktionalität */
+
+/* Debugging-Elemente */
+.debug-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    z-index: 1000;
+    max-width: 250px;
+}
+
+.debug-overlay h3 {
+    margin: 0 0 5px 0;
+    font-size: 14px;
+}
+
+.debug-overlay pre {
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.coordinate-line {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.3;
+}
+
+.coordinate-line.horizontal {
+    width: 100%;
+    height: 1px;
+    background-color: red;
+}
+
+.coordinate-line.vertical {
+    width: 1px;
+    height: 100%;
+    background-color: blue;
+}
+
+/* Charakter-Position Markierung */
+.position-marker {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: red;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 999;
+}
+
+.position-label {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    transform: translate(-50%, -100%);
+    margin-top: -5px;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* Anzeige für den ausgewählten Layer */
+.movement-type-indicator {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.movement-type-indicator.visible {
+    opacity: 1;
+}
+
+/* Canvas-Steuerungs-Hinweis */
+.canvas-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.canvas-hint.visible {
+    opacity: 1;
+}
+
+.swipe-icon {
+    display: block;
+    font-size: 24px;
+    margin-top: 5px;
+}

@@ -1,0 +1,577 @@
+/**
+ * gameInit.js
+ * Enthält die Initialisierungslogik für das Motion Master Spiel
+ */
+
+import { 
+    canvas, 
+    ctx, 
+    gameState, 
+    showMessage, 
+    updateStatusDisplay,
+    updateConnectionStatus,
+    generateNewGoal,
+    updateLayerButtons,
+    updateGaitButtons,
+    showIntroductionOverlay,
+    showCanvasHint
+} from './game.js';
+
+import { 
+    moveCharacter, 
+    stopCharacter, 
+    setActiveLayer, 
+    removeLayer,
+    playAnimation,
+    setGaitType
+} from './characterMovement.js';
+
+import {
+    drawCharacter,
+    drawGrid,
+    drawGoal
+} from './gameRendering.js';
+
+import { initVisualEffects } from './visual-effects.js';
+
+// Initialisiert das Spiel
+export async function initializeGame() {
+    // Canvas einrichten
+    setupCanvas();
+    
+    // Verbindung mit WebSocket versuchen
+    try {
+        connectWebSocket();
+    } catch (e) {
+        console.warn("WebSocket konnte nicht initialisiert werden:", e);
+        gameState.offlineMode = true;
+        updateConnectionStatus();
+    }
+    
+    // Spiel initialisieren
+    try {
+        await createCharacter();
+        await setActiveLayer("BasicWalkingLayer");
+        generateNewGoal();
+        startGameLoop();
+        setupEventListeners();
+        initVisualEffects(canvas);
+        
+        // Starteinführung für neue Spieler
+        setTimeout(() => {
+            showIntroduction();
+        }, 500);
+    } catch (error) {
+        showMessage("Fehler beim Starten des Spiels: " + error.message);
+        console.error("Fehler beim Starten des Spiels:", error);
+        
+        // Fallback: Spiel offline starten
+        gameState.offlineMode = true;
+        updateConnectionStatus();
+        gameState.character.id = "fallback-" + Math.random().toString(36).substring(2, 9);
+        gameState.character.x = canvas.width / 2;
+        gameState.character.z = canvas.height / 2;
+        generateNewGoal();
+        startGameLoop();
+        setupEventListeners();
+        initVisualEffects(canvas);
+        showIntroduction();
+    }
+}
+
+// Setzt das Canvas-Element auf
+function setupCanvas() {
+    // Passe Canvas-Größe an Container an
+    const container = document.querySelector(".game-board");
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    
+    // Passe die Größe bei Änderung der Fenstergröße an
+    window.addEventListener("resize", () => {
+        const container = document.querySelector(".game-board");
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    });
+}
+
+// Zeigt die Einführungsanleitung an
+function showIntroduction() {
+    const introMessages = [
+        "Willkommen bei Motion Master!",
+        "Bewege den Charakter zum goldenen Ziel.",
+        "Wechsle zwischen verschiedenen Bewegungsarten.",
+        "Experimentiere mit Idle, Gehen und Laufen!"
+    ];
+    
+    let messageIndex = 0;
+    
+    function showNextMessage() {
+        if (messageIndex < introMessages.length) {
+            showMessage(introMessages[messageIndex], 3000);
+            messageIndex++;
+            setTimeout(showNextMessage, 3500);
+        }
+    }
+    
+    showNextMessage();
+}
+
+// Hauptspielschleife starten
+function startGameLoop() {
+    if (gameState.gameLoopId) {
+        cancelAnimationFrame(gameState.gameLoopId);
+    }
+    
+    function gameLoop() {
+        // Canvas leeren
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Spielfeld zeichnen
+        drawGrid();
+        
+        // Ziel zeichnen
+        drawGoal();
+        
+        // Charakter zeichnen
+        drawCharacter();
+        
+        // Offline-Modus-Anzeige
+        if (gameState.offlineMode) {
+            ctx.save();
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "#e74c3c";
+            ctx.textAlign = "left";
+            ctx.fillText("OFFLINE MODUS", 10, 20);
+            ctx.restore();
+        }
+        
+        // Weiter animieren
+        gameState.gameLoopId = requestAnimationFrame(gameLoop);
+    }
+    
+    gameState.gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+// Event-Listener einrichten
+function setupEventListeners() {
+    // Bewegungsbuttons
+    document.getElementById("moveUp").addEventListener("click", () => moveCharacter(0, 0, -1));
+    document.getElementById("moveDown").addEventListener("click", () => moveCharacter(0, 0, 1));
+    document.getElementById("moveLeft").addEventListener("click", () => moveCharacter(-1, 0, 0));
+    document.getElementById("moveRight").addEventListener("click", () => moveCharacter(1, 0, 0));
+    document.getElementById("moveStop").addEventListener("click", () => stopCharacter());
+
+    // Layer-Buttons
+    document.getElementById("walkingLayer").addEventListener("click", async () => {
+        // Andere Layer entfernen
+        await removeLayer("RunningLayer");
+        await removeLayer("IdleLayer");
+        await removeLayer("AdvancedWalkingLayer");
+        await setActiveLayer("BasicWalkingLayer");
+        
+        // Gangarten-Bereich ausblenden
+        document.getElementById("gaitControls").style.display = "none";
+    });
+
+    document.getElementById("runningLayer").addEventListener("click", async () => {
+        // Andere Layer entfernen
+        await removeLayer("BasicWalkingLayer");
+        await removeLayer("IdleLayer");
+        await removeLayer("AdvancedWalkingLayer");
+        await setActiveLayer("RunningLayer");
+        
+        // Gangarten-Bereich ausblenden
+        document.getElementById("gaitControls").style.display = "none";
+    });
+
+    document.getElementById("idleLayer").addEventListener("click", async () => {
+        // Andere Layer entfernen
+        await removeLayer("BasicWalkingLayer");
+        await removeLayer("RunningLayer");
+        await removeLayer("AdvancedWalkingLayer");
+        await setActiveLayer("IdleLayer");
+        
+        // Gangarten-Bereich ausblenden
+        document.getElementById("gaitControls").style.display = "none";
+    });
+    
+    document.getElementById("advancedWalkingLayer").addEventListener("click", async () => {
+        // Andere Layer entfernen
+        await removeLayer("BasicWalkingLayer");
+        await removeLayer("RunningLayer");
+        await removeLayer("IdleLayer");
+        await setActiveLayer("AdvancedWalkingLayer");
+        
+        // Gangarten-Bereich einblenden
+        document.getElementById("gaitControls").style.display = "block";
+        updateGaitButtons("NORMAL");
+    });
+    
+    // Gangarten-Buttons
+    document.getElementById("normalGait").addEventListener("click", () => {
+        setGaitType("NORMAL");
+        updateGaitButtons("NORMAL");
+    });
+    
+    document.getElementById("sneakingGait").addEventListener("click", () => {
+        setGaitType("SNEAKING");
+        updateGaitButtons("SNEAKING");
+    });
+    
+    document.getElementById("limpingGait").addEventListener("click", () => {
+        setGaitType("LIMPING");
+        updateGaitButtons("LIMPING");
+    });
+
+    // Animations-Buttons
+    document.getElementById("idleAnimation").addEventListener("click", () => playAnimation("idle_breathing"));
+    document.getElementById("walkAnimation").addEventListener("click", () => playAnimation("basic_walk"));
+
+    // Spiel-Buttons
+    document.getElementById("newGame").addEventListener("click", () => {
+        gameState.score = 0;
+        document.getElementById("scoreValue").textContent = gameState.score;
+        stopCharacter();
+        generateNewGoal();
+        showMessage("Neues Spiel gestartet!");
+    });
+
+    document.getElementById("nextGoal").addEventListener("click", () => {
+        generateNewGoal();
+        showMessage("Neues Ziel generiert!");
+    });
+    
+    document.getElementById("reconnect").addEventListener("click", () => {
+        gameState.offlineMode = false;
+        updateConnectionStatus();
+        connectWebSocket();
+        showMessage("Verbindung wird wiederhergestellt...");
+    });
+
+    // Visuelle Effekte Toggles
+    document.getElementById("toggleFootsteps").addEventListener("change", function() {
+        const visualEffects = window.visualEffects;
+        if (visualEffects) {
+            visualEffects.setFootstepsEnabled(this.checked);
+        }
+    });
+    
+    document.getElementById("toggleParticles").addEventListener("change", function() {
+        const visualEffects = window.visualEffects;
+        if (visualEffects) {
+            visualEffects.setParticlesEnabled(this.checked);
+        }
+    });
+
+    // Tastatur-Steuerung
+    document.addEventListener("keydown", (event) => {
+        switch(event.key) {
+            case "ArrowUp":
+            case "w":
+                moveCharacter(0, 0, -1);
+                break;
+            case "ArrowDown":
+            case "s":
+                moveCharacter(0, 0, 1);
+                break;
+            case "ArrowLeft":
+            case "a":
+                moveCharacter(-1, 0, 0);
+                break;
+            case "ArrowRight":
+            case "d":
+                moveCharacter(1, 0, 0);
+                break;
+            case " ": // Leertaste
+                stopCharacter();
+                break;
+        }
+    });
+    
+    // Anfangs Gangarten-Bereich ausblenden, da wir mit BasicWalkingLayer starten
+    document.getElementById("gaitControls").style.display = "none";
+
+    // Direkte Steuerung auf dem Canvas durch Touch/Maus
+    enableCanvasControls();
+}
+
+// Direkte Steuerung auf dem Canvas durch Touch/Maus
+function enableCanvasControls() {
+    let isDragging = false;
+    let lastX, lastY;
+    let currentDirectionX = 0;
+    let currentDirectionZ = 0;
+    let moveInterval = null;
+    
+    // Funktion für kontinuierliche Bewegung
+    function continuousMove() {
+        if (currentDirectionX !== 0 || currentDirectionZ !== 0) {
+            moveCharacter(currentDirectionX, 0, currentDirectionZ);
+        }
+    }
+    
+    // Hilfsfunktion zur Berechnung der Richtung
+    function calculateDirection(currentX, currentY) {
+        const deltaX = currentX - lastX;
+        const deltaY = currentY - lastY;
+        
+        // Berechne die Richtung als normalisierte Vektor
+        const length = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (length > 5) { // Mindestbewegung für Reaktion
+            return { 
+                dirX: deltaX / length, 
+                dirZ: deltaY / length 
+            };
+        }
+        
+        return { dirX: 0, dirZ: 0 };
+    }
+    
+    // Starte kontinuierliche Bewegung
+    function startContinuousMove() {
+        if (moveInterval === null) {
+            moveInterval = setInterval(continuousMove, 50); // 20 FPS Bewegungsupdate
+        }
+    }
+    
+    // Stoppe kontinuierliche Bewegung
+    function stopContinuousMove() {
+        if (moveInterval !== null) {
+            clearInterval(moveInterval);
+            moveInterval = null;
+        }
+        currentDirectionX = 0;
+        currentDirectionZ = 0;
+    }
+    
+    // Maus-Events
+    canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        lastX = e.offsetX;
+        lastY = e.offsetY;
+        startContinuousMove();
+    });
+    
+    canvas.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const { dirX, dirZ } = calculateDirection(e.offsetX, e.offsetY);
+            currentDirectionX = dirX;
+            currentDirectionZ = dirZ;
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+        }
+    });
+    
+    canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+        stopContinuousMove();
+    });
+    
+    canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+        stopContinuousMove();
+    });
+    
+    // Touch-Events für mobile Geräte
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        lastX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+        lastY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+        startContinuousMove();
+    });
+    
+    canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (isDragging) {
+            const currentX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+            const currentY = e.touches[0].clientY - canvas.getBoundingClientRect().top;
+            
+            const { dirX, dirZ } = calculateDirection(currentX, currentY);
+            currentDirectionX = dirX;
+            currentDirectionZ = dirZ;
+            lastX = currentX;
+            lastY = currentY;
+        }
+    });
+    
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        isDragging = false;
+        stopContinuousMove();
+    });
+    
+    canvas.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        isDragging = false;
+        stopContinuousMove();
+    });
+    
+    // Klick-Steuerung (bewegt den Charakter zum geklickten Punkt)
+    canvas.addEventListener('click', (e) => {
+        // Bei Klick (ohne Drag) - bewege den Charakter zum Zielpunkt
+        if (!isDragging) {
+            const targetX = e.offsetX;
+            const targetY = e.offsetY;
+            
+            // Berechne Richtungsvektor zum Zielpunkt
+            const dirX = targetX - gameState.character.x;
+            const dirZ = targetY - gameState.character.z;
+            
+            // Normalisiere den Vektor
+            const length = Math.sqrt(dirX * dirX + dirZ * dirZ);
+            if (length > 0) {
+                moveCharacter(dirX / length, 0, dirZ / length);
+            }
+        }
+    });
+}
+
+// Erstellt einen neuen Charakter
+async function createCharacter() {
+    try {
+        const initialX = canvas.width / 2;
+        const initialZ = canvas.height / 2;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/characters`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    x: initialX,
+                    y: 0,
+                    z: initialZ
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                gameState.character.id = data.characterId;
+                gameState.character.x = data.x;
+                gameState.character.y = data.y;
+                gameState.character.z = data.z;
+                gameState.character.speed = data.speed;
+                gameState.character.rotationX = data.rotationX;
+                gameState.character.rotationY = data.rotationY;
+                gameState.character.rotationZ = data.rotationZ;
+                
+                gameState.offlineMode = false;
+                updateConnectionStatus();
+                updateStatusDisplay();
+                console.log(`Character created with ID: ${data.characterId} at position (${data.x}, ${data.y}, ${data.z})`);
+                return data;
+            }
+        } catch (e) {
+            console.warn("API nicht verfügbar, verwende Offline-Modus", e);
+            gameState.offlineMode = true;
+            updateConnectionStatus();
+        }
+        
+        // Fallback zu Mock-Daten im Offline-Modus
+        if (gameState.offlineMode) {
+            const mockCharacter = {
+                characterId: "mock-" + Math.random().toString(36).substring(2, 9),
+                x: initialX,
+                y: 0,
+                z: initialZ,
+                speed: 0,
+                rotationX: 0,
+                rotationY: 0,
+                rotationZ: 0
+            };
+            gameState.character.id = mockCharacter.characterId;
+            gameState.character.x = mockCharacter.x;
+            gameState.character.y = mockCharacter.y;
+            gameState.character.z = mockCharacter.z;
+            gameState.character.speed = mockCharacter.speed;
+            gameState.character.rotationX = mockCharacter.rotationX;
+            gameState.character.rotationY = mockCharacter.rotationY;
+            gameState.character.rotationZ = mockCharacter.rotationZ;
+            
+            updateStatusDisplay();
+            showMessage("Offline-Modus aktiviert");
+            return mockCharacter;
+        }
+    } catch (error) {
+        showMessage("Fehler: " + error.message);
+        console.error("Fehler beim Erstellen des Charakters:", error);
+        throw error;
+    }
+}
+
+// WebSocket-Verbindung aufbauen
+function connectWebSocket() {
+    const WS_URL = "ws://" + window.location.host + "/motion-updates";
+    
+    if (typeof WebSocket === "undefined") {
+        console.warn("WebSocket ist in diesem Browser nicht unterstützt");
+        gameState.offlineMode = true;
+        updateConnectionStatus();
+        return;
+    }
+
+    if (gameState.webSocket) {
+        try {
+            gameState.webSocket.close();
+        } catch (e) {
+            console.error("Fehler beim Schließen des WebSockets:", e);
+        }
+    }
+
+    try {
+        gameState.webSocket = new WebSocket(WS_URL);
+
+        gameState.webSocket.onopen = () => {
+            console.log("WebSocket verbunden");
+            gameState.offlineMode = false;
+            updateConnectionStatus();
+        };
+
+        gameState.webSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+
+                switch(data.type) {
+                    case "POSITION_UPDATE":
+                        if (data.characterId === gameState.character.id) {
+                            gameState.character.x = data.position.x;
+                            gameState.character.y = data.position.y;
+                            gameState.character.z = data.position.z;
+                            updateStatusDisplay();
+                        }
+                        break;
+                    case "ANIMATION_UPDATE":
+                        // Animations-Updates behandeln
+                        break;
+                    case "LAYER_UPDATE":
+                        if (data.characterId === gameState.character.id) {
+                            gameState.activeLayer = data.activeLayer;
+                            updateStatusDisplay();
+                            updateLayerButtons(data.activeLayer);
+                        }
+                        break;
+                }
+            } catch (error) {
+                console.error("Fehler bei der Verarbeitung der WebSocket-Nachricht:", error);
+            }
+        };
+
+        gameState.webSocket.onerror = (error) => {
+            console.error("WebSocket-Fehler:", error);
+            gameState.offlineMode = true;
+            updateConnectionStatus();
+        };
+
+        gameState.webSocket.onclose = () => {
+            console.log("WebSocket-Verbindung geschlossen");
+            gameState.offlineMode = true;
+            updateConnectionStatus();
+        };
+    } catch (e) {
+        console.warn("Fehler bei der WebSocket-Verbindung:", e);
+        gameState.offlineMode = true;
+        updateConnectionStatus();
+    }
+}
