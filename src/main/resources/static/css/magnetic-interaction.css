@@ -1,0 +1,164 @@
+/* Magnetische Interaktionseffekte */
+
+.magnetic-effects-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.magnetic-field-line {
+    position: absolute;
+    height: 2px;
+    background-color: rgba(65, 105, 225, 0.5);
+    transform-origin: left center;
+    border-radius: 100px;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
+}
+
+.magnetic-pulse {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(65, 105, 225, 0.6) 0%, rgba(65, 105, 225, 0) 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: magnetPulse 1s ease-out forwards;
+    z-index: 20;
+}
+
+/* Anziehungs-Indikator */
+.attraction-indicator {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(65, 105, 225, 0.7);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 15;
+    box-shadow: 0 0 10px rgba(65, 105, 225, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.attraction-indicator.active {
+    opacity: 1;
+    animation: attractionPulse 1.5s infinite;
+}
+
+@keyframes magnetPulse {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2.5);
+    }
+}
+
+@keyframes attractionPulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+}
+
+/* Polstärkeanzeige */
+.magnet-pole-indicator {
+    position: absolute;
+    pointer-events: none;
+    background-color: white;
+    border-radius: 3px;
+    color: #333;
+    font-weight: bold;
+    font-size: 10px;
+    padding: 1px 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 11;
+    opacity: 0.8;
+}
+
+.magnet-pole-indicator.north {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.magnet-pole-indicator.south {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Stärke-Anzeige */
+.magnet-strength-bar {
+    position: absolute;
+    left: 10px;
+    bottom: 40px;
+    width: 100px;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    opacity: 0;
+    z-index: 15;
+}
+
+.magnet-strength-bar.active {
+    opacity: 1;
+}
+
+.magnet-strength-fill {
+    height: 100%;
+    background: linear-gradient(to right, #3498db, #e74c3c);
+    border-radius: inherit;
+    transition: width 0.2s;
+}
+
+/* Mobile-optimierte Touchbereiche */
+.mobile-touch-area {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: rgba(52, 152, 219, 0.15);
+    border: 2px solid rgba(52, 152, 219, 0.3);
+    display: none; /* Standardmäßig ausgeblendet, wird für Mobilgeräte eingeblendet */
+    touch-action: none;
+    z-index: 10;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 768px) {
+    .mobile-touch-area {
+        display: block;
+    }
+    
+    .magnetic-pulse {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .magnet-strength-bar {
+        width: 80px;
+        height: 6px;
+    }
+}
