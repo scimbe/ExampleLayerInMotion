@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motion Master - Charakterbewegungsspiel</title>
+    <title>Motion Master - Interaktives Bewegungssystem</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/visual-effects.css">
 </head>
 <body>
     <div class="game-container">
@@ -21,38 +22,50 @@
                 <canvas id="gameCanvas" width="600" height="400"></canvas>
                 <div id="goals"></div>
                 <div id="messages"></div>
+                <div id="tutorial" class="tutorial-overlay">
+                    <div class="tutorial-content">
+                        <h3>Willkommen bei Motion Master!</h3>
+                        <p>Bewegen Sie den Charakter mit den Pfeiltasten oder den Steuerungsbuttons.</p>
+                        <p>Probieren Sie verschiedene Bewegungsarten aus und sammeln Sie die goldenen Ziele!</p>
+                        <button id="dismissTutorial">Verstanden</button>
+                    </div>
+                </div>
             </div>
 
             <div class="controls">
                 <div class="movement-controls">
                     <h2>Bewegung</h2>
                     <div class="direction-buttons">
-                        <button id="moveUp" title="Nach oben bewegen">↑</button>
+                        <button id="moveUp" title="Nach oben bewegen" aria-label="Nach oben bewegen">↑</button>
                         <div class="horizontal-buttons">
-                            <button id="moveLeft" title="Nach links bewegen">←</button>
-                            <button id="moveStop" title="Bewegung anhalten">■</button>
-                            <button id="moveRight" title="Nach rechts bewegen">→</button>
+                            <button id="moveLeft" title="Nach links bewegen" aria-label="Nach links bewegen">←</button>
+                            <button id="moveStop" title="Bewegung anhalten" aria-label="Bewegung anhalten">■</button>
+                            <button id="moveRight" title="Nach rechts bewegen" aria-label="Nach rechts bewegen">→</button>
                         </div>
-                        <button id="moveDown" title="Nach unten bewegen">↓</button>
+                        <button id="moveDown" title="Nach unten bewegen" aria-label="Nach unten bewegen">↓</button>
+                    </div>
+                    <div class="status-indicator">
+                        <span>Status: </span>
+                        <span id="movementStatus">Stehend</span>
                     </div>
                 </div>
 
                 <div class="layer-controls">
                     <h2>Bewegungsart</h2>
                     <div class="tooltip">
-                        <button id="walkingLayer" class="layer-button active">Gehen</button>
+                        <button id="walkingLayer" class="layer-button active" aria-pressed="true">Gehen</button>
                         <span class="tooltip-text">Einfache Gehbewegung mit normaler Geschwindigkeit</span>
                     </div>
                     <div class="tooltip">
-                        <button id="runningLayer" class="layer-button">Laufen</button>
+                        <button id="runningLayer" class="layer-button" aria-pressed="false">Laufen</button>
                         <span class="tooltip-text">Schnellere Bewegung mit Ausdauerverbrauch</span>
                     </div>
                     <div class="tooltip">
-                        <button id="idleLayer" class="layer-button">Stehen</button>
+                        <button id="idleLayer" class="layer-button" aria-pressed="false">Stehen</button>
                         <span class="tooltip-text">Ruhezustand mit subtilen Atembewegungen</span>
                     </div>
                     <div class="tooltip">
-                        <button id="advancedWalkingLayer" class="layer-button">Erw. Gehen</button>
+                        <button id="advancedWalkingLayer" class="layer-button" aria-pressed="false">Erw. Gehen</button>
                         <span class="tooltip-text">Erweitertes Gehen mit verschiedenen Gangarten</span>
                     </div>
                 </div>
@@ -60,15 +73,15 @@
                 <div id="gaitControls" class="gait-controls">
                     <h2>Gangarten</h2>
                     <div class="tooltip">
-                        <button id="normalGait" class="gait-button active">Normal</button>
+                        <button id="normalGait" class="gait-button active" aria-pressed="true">Normal</button>
                         <span class="tooltip-text">Normale Gehbewegung mit ausgeglichenem Tempo</span>
                     </div>
                     <div class="tooltip">
-                        <button id="sneakingGait" class="gait-button">Schleichen</button>
+                        <button id="sneakingGait" class="gait-button" aria-pressed="false">Schleichen</button>
                         <span class="tooltip-text">Langsame, vorsichtige Bewegung mit geringer Höhe</span>
                     </div>
                     <div class="tooltip">
-                        <button id="limpingGait" class="gait-button">Humpeln</button>
+                        <button id="limpingGait" class="gait-button" aria-pressed="false">Humpeln</button>
                         <span class="tooltip-text">Asymmetrische Gehbewegung mit unregelmäßigem Rhythmus</span>
                     </div>
                 </div>
@@ -82,6 +95,24 @@
                     <div class="tooltip">
                         <button id="walkAnimation">Geh-Animation</button>
                         <span class="tooltip-text">Grundlegende Schrittbewegung</span>
+                    </div>
+                </div>
+
+                <div class="visual-effects-controls">
+                    <h2>Visuelle Effekte</h2>
+                    <div class="effects-options">
+                        <div class="effects-toggle">
+                            <input type="checkbox" id="effectsEnabled" checked>
+                            <label for="effectsEnabled">Effekte aktivieren</label>
+                        </div>
+                        <div class="effects-toggle">
+                            <input type="checkbox" id="footstepsEnabled" checked>
+                            <label for="footstepsEnabled">Fußspuren anzeigen</label>
+                        </div>
+                        <div class="effects-toggle">
+                            <input type="checkbox" id="particlesEnabled" checked>
+                            <label for="particlesEnabled">Partikeleffekte anzeigen</label>
+                        </div>
                     </div>
                 </div>
 
@@ -106,6 +137,7 @@
         </div>
     </div>
 
+    <script src="js/visual-effects.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>
