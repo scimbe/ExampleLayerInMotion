@@ -40,6 +40,35 @@ public class Particle {
     private final long lifetime;     // Lebensdauer in Millisekunden
     
     /**
+     * Erstellt ein neues Partikel mit vollständigen Parametern.
+     */
+    public Particle(UUID id, float x, float y, float z, 
+                   float velocityX, float velocityY, float velocityZ,
+                   float accelerationX, float accelerationY, float accelerationZ,
+                   float size, float startAlpha, float endAlpha,
+                   float red, float green, float blue,
+                   long creationTime, long lifetime) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.velocityZ = velocityZ;
+        this.accelerationX = accelerationX;
+        this.accelerationY = accelerationY;
+        this.accelerationZ = accelerationZ;
+        this.size = size;
+        this.startAlpha = startAlpha;
+        this.endAlpha = endAlpha;
+        this.red = red;
+        this.green = green;
+        this.blue = blue;
+        this.creationTime = creationTime;
+        this.lifetime = lifetime;
+    }
+    
+    /**
      * Aktualisiert die Position des Partikels basierend auf seiner Geschwindigkeit und Beschleunigung.
      * 
      * @param deltaTime Zeit seit dem letzten Update in Sekunden
