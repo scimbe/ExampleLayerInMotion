@@ -82,7 +82,8 @@ async function createCharacter() {
                 const data = await response.json();
                 gameState.character.id = data.characterId;
                 updateCharacterState(data);
-                
+                gameState.offlineMode = false;
+                console.log(`Character created with ID: ${data.characterId} at position (${data.x}, ${data.y}, ${data.z})`);
                 return data;
             }
         } catch (e) {

@@ -24,6 +24,7 @@ export async function moveCharacter(dirX, dirY, dirZ, speed = 1.0) {
                 if (response.ok) {
                     const data = await response.json();
                     updateCharacterState(data);
+                    console.log(`Character moved to position (${data.x}, ${data.y}, ${data.z}) with speed ${data.speed}`);
                     return data;
                 }
             } catch (e) {
@@ -58,6 +59,7 @@ export async function moveCharacter(dirX, dirY, dirZ, speed = 1.0) {
                 gameState.character.y = Math.sin(time) * 0.05;
             }
 
+            console.log(`Character moved to position (${gameState.character.x}, ${gameState.character.y}, ${gameState.character.z}) with speed ${gameState.character.speed}`);
             updateStatusDisplay();
             checkGoalCollision();
         }
