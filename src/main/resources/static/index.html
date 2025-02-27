@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motion Master - Charakterbewegungsspiel</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/visual-effects.css">
 </head>
 <body>
     <div class="game-container">
@@ -91,6 +92,20 @@
                     <button id="nextGoal">Nächstes Ziel</button>
                     <button id="reconnect">Verbindung wiederherstellen</button>
                 </div>
+
+                <div class="visual-effects-controls">
+                    <h2>Visuelle Effekte</h2>
+                    <div class="effects-options">
+                        <div class="effects-toggle">
+                            <input type="checkbox" id="toggleFootsteps" checked>
+                            <label for="toggleFootsteps">Fußspuren anzeigen</label>
+                        </div>
+                        <div class="effects-toggle">
+                            <input type="checkbox" id="toggleParticles" checked>
+                            <label for="toggleParticles">Partikeleffekte anzeigen</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -107,5 +122,6 @@
     </div>
 
     <script src="js/game.js"></script>
+    <script src="js/visual-effects.js"></script>
 </body>
 </html>
