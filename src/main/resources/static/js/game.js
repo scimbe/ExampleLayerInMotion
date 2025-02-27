@@ -3,6 +3,10 @@
  * Ein Spiel zur Demonstration der Layer-basierten Charakterbewegung
  */
 
+import { moveCharacter, stopCharacter, setActiveLayer } from './characterMovement.js';
+import { connectWebSocket } from './webSocketHandler.js';
+import { drawCharacter, drawGrid, drawGoal } from './gameRendering.js';
+
 // ---- Konfiguration ----
 const API_BASE_URL = "/api/v1";
 const WS_URL = "ws://" + window.location.host + "/motion-updates";
@@ -109,81 +113,6 @@ async function createCharacter() {
     }
 }
 
-// Bewegt den Charakter in eine Richtung
-async function moveCharacter(dirX, dirY, dirZ, speed = DEFAULT_SPEED) {
-    if (!gameState.character.id) return;
-    
-    try {
-        gameState.isMoving = true;
-        
-        // Online-Modus: API aufrufen
-        if (!gameState.offlineMode) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/move`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        directionX: dirX,
-                        directionY: dirY,
-                        directionZ: dirZ,
-                        speed: speed
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateCharacterState(data);
-                    return data;
-                }
-            } catch (e) {
-                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
-                gameState.offlineMode = true;
-            }
-        }
-        
-        // Offline-Modus: Lokale Bewegungsberechnung
-        if (gameState.offlineMode) {
-            // Berechne Winkel basierend auf Richtung
-            const angle = Math.atan2(dirX, dirZ);
-            gameState.character.rotationY = angle * (180 / Math.PI);
-            
-            // Berechne Bewegung basierend auf Layer-Typ und Richtung
-            let movementSpeed = speed;
-            if (gameState.activeLayer === "RunningLayer") {
-                movementSpeed = speed * 2;
-            } else if (gameState.activeLayer === "IdleLayer") {
-                movementSpeed = 0;
-            }
-            
-            // Berechne neue Position
-            const newX = gameState.character.x + (dirX * movementSpeed * 5);
-            const newZ = gameState.character.z + (dirZ * movementSpeed * 5);
-            
-            // Grenzen überprüfen
-            const paddedWidth = canvas.width - 20;
-            const paddedHeight = canvas.height - 20;
-            
-            gameState.character.x = Math.max(20, Math.min(newX, paddedWidth));
-            gameState.character.z = Math.max(20, Math.min(newZ, paddedHeight));
-            gameState.character.speed = movementSpeed;
-            
-            // Vertikale Bewegungssimulation für BasicWalkingLayer
-            if (gameState.activeLayer === "BasicWalkingLayer" && movementSpeed > 0) {
-                const time = Date.now() / 500;
-                gameState.character.y = Math.sin(time) * 0.05;
-            }
-            
-            updateStatusDisplay();
-            checkGoalCollision();
-        }
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler bei der Bewegung:", error);
-    }
-}
-
 // Spielt eine Animation ab
 async function playAnimation(animationId, speed = 1.0) {
     if (!gameState.character.id) return;
@@ -226,104 +155,6 @@ async function playAnimation(animationId, speed = 1.0) {
     }
 }
 
-// Stoppt alle Bewegungen und Animationen
-async function stopCharacter() {
-    if (!gameState.character.id) return;
-    
-    try {
-        gameState.isMoving = false;
-        gameState.currentAnimation = null;
-        
-        // Online-Modus: API aufrufen
-        if (!gameState.offlineMode) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/characters/${gameState.character.id}/stop`, {
-                    method: "POST"
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateCharacterState(data);
-                    return data;
-                }
-            } catch (e) {
-                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
-                gameState.offlineMode = true;
-            }
-        }
-        
-        // Offline-Modus: Geschwindigkeit auf 0 setzen
-        if (gameState.offlineMode) {
-            gameState.character.speed = 0;
-            updateStatusDisplay();
-        }
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler beim Stoppen:", error);
-    }
-}
-
-// Ändert den aktiven Layer
-async function setActiveLayer(layerClassName, priority = 1) {
-    try {
-        // Online-Modus: API aufrufen
-        if (!gameState.offlineMode) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/layers`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        className: `com.example.motion.sys.behavior.${layerClassName}`,
-                        priority: priority
-                    })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    gameState.activeLayer = layerClassName;
-                    activeLayerElement.textContent = layerClassName;
-                    updateLayerButtons(layerClassName);
-                    return data;
-                }
-            } catch (e) {
-                console.warn("API nicht erreichbar, wechsle zu Offline-Modus", e);
-                gameState.offlineMode = true;
-            }
-        }
-        
-        // Offline-Modus: Layer lokal aktualisieren
-        if (gameState.offlineMode) {
-            gameState.activeLayer = layerClassName;
-            activeLayerElement.textContent = layerClassName;
-            updateLayerButtons(layerClassName);
-            
-            // Geschwindigkeit anpassen basierend auf Layer
-            if (layerClassName === "RunningLayer") {
-                // Running ist schneller
-                if (gameState.isMoving) {
-                    gameState.character.speed = DEFAULT_SPEED * 2.0;
-                }
-            } else if (layerClassName === "IdleLayer") {
-                // Idle macht keine Bewegung
-                gameState.character.speed = 0;
-            } else {
-                // BasicWalkingLayer - Standard Geschwindigkeit
-                if (gameState.isMoving) {
-                    gameState.character.speed = DEFAULT_SPEED;
-                }
-            }
-            
-            showMessage(`Layer geändert: ${layerClassName}`);
-            updateStatusDisplay();
-        }
-    } catch (error) {
-        showMessage("Fehler: " + error.message);
-        console.error("Fehler beim Ändern des Layers:", error);
-    }
-}
-
 // Entfernt einen Layer
 async function removeLayer(layerClassName) {
     try {
@@ -348,79 +179,6 @@ async function removeLayer(layerClassName) {
     } catch (error) {
         showMessage("Fehler: " + error.message);
         console.error("Fehler beim Entfernen des Layers:", error);
-    }
-}
-
-// ---- Websocket-Verbindung ----
-function connectWebSocket() {
-    // Prüfe, ob Browser WebSockets unterstützt
-    if (typeof WebSocket === "undefined") {
-        console.warn("WebSocket wird in diesem Browser nicht unterstützt");
-        gameState.offlineMode = true;
-        return;
-    }
-    
-    if (gameState.webSocket) {
-        try {
-            gameState.webSocket.close();
-        } catch (e) {
-            console.error("Fehler beim Schließen des WebSockets:", e);
-        }
-    }
-    
-    try {
-        gameState.webSocket = new WebSocket(WS_URL);
-        
-        gameState.webSocket.onopen = () => {
-            console.log("WebSocket verbunden");
-            gameState.offlineMode = false;
-        };
-        
-        gameState.webSocket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                
-                switch(data.type) {
-                    case "POSITION_UPDATE":
-                        if (data.characterId === gameState.character.id) {
-                            gameState.character.x = data.position.x;
-                            gameState.character.y = data.position.y;
-                            gameState.character.z = data.position.z;
-                            updateStatusDisplay();
-                            checkGoalCollision();
-                        }
-                        break;
-                    case "ANIMATION_UPDATE":
-                        // Animation-Updates verarbeiten
-                        break;
-                    case "LAYER_UPDATE":
-                        if (data.characterId === gameState.character.id) {
-                            gameState.activeLayer = data.activeLayer;
-                            activeLayerElement.textContent = data.activeLayer;
-                            updateLayerButtons(data.activeLayer);
-                        }
-                        break;
-                }
-            } catch (error) {
-                console.error("Fehler beim Verarbeiten der WebSocket-Nachricht:", error);
-            }
-        };
-        
-        gameState.webSocket.onerror = (error) => {
-            console.error("WebSocket-Fehler:", error);
-            gameState.offlineMode = true;
-        };
-        
-        gameState.webSocket.onclose = () => {
-            console.log("WebSocket-Verbindung geschlossen");
-            gameState.offlineMode = true;
-            
-            // Automatische Wiederverbindung nach einer kurzen Verzögerung
-            setTimeout(connectWebSocket, 3000);
-        };
-    } catch (e) {
-        console.warn("Fehler beim Verbinden mit WebSocket:", e);
-        gameState.offlineMode = true;
     }
 }
 
@@ -522,106 +280,6 @@ function checkGoalCollision() {
         
         showMessage("Ziel erreicht! +10 Punkte");
     }
-}
-
-// ---- Rendering ----
-
-// Zeichnet den Charakter
-function drawCharacter() {
-    const x = gameState.character.x;
-    const y = gameState.character.z; // Z-Position für Y-Koordinate im 2D-Kontext
-    
-    ctx.save();
-    
-    // Charakter-Kreis
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
-    
-    // Farbe je nach aktivem Layer
-    if (gameState.activeLayer === "RunningLayer") {
-        ctx.fillStyle = "#e74c3c"; // Rot für schnelles Laufen
-    } else if (gameState.activeLayer === "IdleLayer") {
-        ctx.fillStyle = "#2ecc71"; // Grün für Stehen
-    } else {
-        ctx.fillStyle = "#3498db"; // Blau für normales Gehen
-    }
-    
-    ctx.fill();
-    ctx.strokeStyle = "#2c3e50";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Richtungsindikator
-    const angle = Math.PI * gameState.character.rotationY / 180;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + Math.sin(angle) * 20, y + Math.cos(angle) * 20);
-    ctx.strokeStyle = "#e74c3c";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    
-    // Zeige den aktiven Layer als Text
-    ctx.font = "10px Arial";
-    ctx.fillStyle = "#333";
-    ctx.textAlign = "center";
-    ctx.fillText(gameState.activeLayer.replace("Layer", ""), x, y - 20);
-    
-    ctx.restore();
-}
-
-// Zeichnet das Gitter
-function drawGrid() {
-    ctx.save();
-    
-    ctx.strokeStyle = "#ecf0f1";
-    ctx.lineWidth = 0.5;
-    
-    // Vertikale Linien
-    for (let x = 0; x < canvas.width; x += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
-        ctx.stroke();
-    }
-    
-    // Horizontale Linien
-    for (let y = 0; y < canvas.height; y += GRID_SIZE) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-    
-    ctx.restore();
-}
-
-// Zeichnet das aktuelle Ziel
-function drawGoal() {
-    const x = gameState.goalPosition.x;
-    const y = gameState.goalPosition.y;
-    
-    ctx.save();
-    
-    // Pulsierender Effekt
-    const time = Date.now() / 1000;
-    const scale = 1 + Math.sin(time * 3) * 0.1;
-    
-    // Zielkreis
-    ctx.beginPath();
-    ctx.arc(x, y, 12 * scale, 0, Math.PI * 2);
-    ctx.fillStyle = "gold";
-    ctx.fill();
-    ctx.strokeStyle = "orange";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Ziel-Text
-    ctx.font = "10px Arial";
-    ctx.fillStyle = "#333";
-    ctx.textAlign = "center";
-    ctx.fillText("ZIEL", x, y - 15);
-    
-    ctx.restore();
 }
 
 // ---- UI-Updates ----
