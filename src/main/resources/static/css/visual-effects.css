@@ -1,0 +1,173 @@
+/**
+ * visual-effects.css
+ * Stylesheet für die visuellen Effekte im Motion System
+ */
+
+/* Footprint Styles */
+.footprint {
+    position: absolute;
+    opacity: 0.8;
+    pointer-events: none;
+    transform-origin: center;
+    transition: opacity 0.5s ease-out;
+}
+
+.footprint-fade {
+    animation: footprintFade 5s forwards;
+}
+
+.footprint-running {
+    background-color: rgba(217, 87, 87, 0.8);
+}
+
+.footprint-walking {
+    background-color: rgba(87, 217, 157, 0.8);
+}
+
+.footprint-advanced {
+    background-color: rgba(87, 157, 217, 0.8);
+}
+
+/* Particle Styles */
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.particle-dust {
+    background-color: rgba(150, 150, 130, 0.7);
+    filter: blur(2px);
+}
+
+.particle-goal {
+    background-color: rgba(255, 215, 0, 0.8);
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.6);
+    animation: particleGlow 1s infinite alternate;
+}
+
+.particle-layer-change {
+    animation: layerChangeParticle 0.8s forwards;
+}
+
+.particle-layer-change.running {
+    background-color: rgba(255, 77, 77, 0.8);
+}
+
+.particle-layer-change.advanced {
+    background-color: rgba(77, 148, 255, 0.8);
+}
+
+.particle-layer-change.idle {
+    background-color: rgba(77, 255, 148, 0.8);
+}
+
+/* Animation für die verblassenden Fußspuren */
+@keyframes footprintFade {
+    0% { opacity: 0.8; }
+    80% { opacity: 0.4; }
+    100% { opacity: 0; }
+}
+
+/* Animation für den glitzernden Effekt bei Zielerfassung */
+@keyframes particleGlow {
+    0% { 
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.6);
+        background-color: rgba(255, 215, 0, 0.8);
+    }
+    100% { 
+        box-shadow: 0 0 8px rgba(255, 215, 0, 0.8);
+        background-color: rgba(255, 245, 150, 0.9);
+    }
+}
+
+/* Animation für Layer-Wechsel-Partikel */
+@keyframes layerChangeParticle {
+    0% { 
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    70% {
+        opacity: 0.7;
+    }
+    100% { 
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Steuerungsbereich für visuelle Effekte */
+.visual-effects-controls {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    margin-top: 15px;
+}
+
+.visual-effects-controls h2 {
+    color: #3498db;
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.effects-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.effects-toggle {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.effects-toggle input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.effects-toggle label {
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+/* Tooltips für visuelle Effekte */
+.effects-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.effects-tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 5px;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.8rem;
+}
+
+.effects-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Media Queries für responsive Design */
+@media (max-width: 768px) {
+    .effects-options {
+        flex-direction: column;
+    }
+    
+    .visual-effects-controls {
+        padding: 10px;
+    }
+}
