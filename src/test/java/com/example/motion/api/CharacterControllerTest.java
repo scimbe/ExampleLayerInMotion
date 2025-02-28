@@ -74,11 +74,7 @@ class CharacterControllerTest {
     @Test
     void moveCharacter_ShouldUpdateCharacterState() {
         // Arrange
-        MovementRequest request = new MovementRequest();
-        request.setDirectionX(1.0f);
-        request.setDirectionY(0.0f);
-        request.setDirectionZ(0.0f);
-        request.setSpeed(1.5f);
+        MovementRequest request = new MovementRequest(1.0f, 0.0f, 0.0f, 1.5f);
 
         MotionState newState = new MotionState(
             testCharacterId,
