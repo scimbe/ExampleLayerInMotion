@@ -1,0 +1,244 @@
+/* Mobile-optimiertes Layout */
+
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --running-color: #e74c3c;
+    --idle-color: #2ecc71;
+    --advanced-color: #9b59b6;
+    --text-color: #333;
+    --bg-color: #f5f5f5;
+    --menu-bg: rgba(255, 255, 255, 0.95);
+    --menu-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg-color);
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+}
+
+/* Volle Bildschirmbreite für das Spiel */
+.game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+/* Fullscreen-Spielfeld */
+.game-board {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    overflow: hidden;
+    z-index: 1;
+    border: none;
+    border-radius: 0;
+    max-height: none;
+    min-height: auto;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: var(--grid-color);
+}
+
+/* Hauptmenüleiste oben */
+.top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10;
+}
+
+.game-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.score-display {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+.menu-toggle {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.5rem;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.menu-toggle.active {
+    transform: rotate(135deg);
+}
+
+/* Sliding-Menü */
+.side-menu {
+    position: absolute;
+    top: 50px;
+    right: -300px;
+    width: 300px;
+    max-width: 85vw;
+    height: calc(100vh - 50px);
+    background-color: var(--menu-bg);
+    box-shadow: var(--menu-shadow);
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    z-index: 20;
+    padding: 20px;
+    border-radius: 0 0 0 10px;
+}
+
+.side-menu.active {
+    right: 0;
+}
+
+/* Anpassung für Ziel- und Nachrichtenanzeige */
+#goals {
+    top: 60px;
+    left: 10px;
+}
+
+#messages {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 90%;
+    border-radius: 20px;
+}
+
+/* Bewegungstyp-Anzeige */
+.movement-type-indicator {
+    bottom: 70px;
+}
+
+/* Unterdrücke alte Header und Anleitung */
+header, .user-guidance {
+    display: none;
+}
+
+/* Hauptinhalt ausblenden (wird im Seitenmenü angezeigt) */
+main > .controls, main > #character-info {
+    display: none;
+}
+
+/* Overlay für Menüöffnung bei erster Nutzung */
+.menu-hint {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    z-index: 30;
+    max-width: 200px;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(-10px);
+}
+
+.menu-hint.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.menu-hint:after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    border-width: 0 10px 10px 10px;
+    border-style: solid;
+    border-color: transparent transparent rgba(255, 255, 255, 0.9) transparent;
+}
+
+/* Responsive Anpassungen */
+@media (max-width: 360px) {
+    .top-bar {
+        padding: 0 10px;
+    }
+    
+    .game-title {
+        font-size: 1rem;
+    }
+    
+    .menu-toggle {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+/* Überschreibe Media Queries für größere Bildschirme */
+@media (min-width: 768px) {
+    .game-container {
+        max-width: none;
+        padding: 0;
+    }
+    
+    main {
+        display: block;
+    }
+    
+    .game-board {
+        height: 100vh;
+        max-height: none;
+        min-height: auto;
+    }
+}
+
+@media (min-width: 1024px) {
+    .game-container {
+        max-width: none;
+    }
+    
+    main {
+        display: block;
+    }
+    
+    .game-board {
+        height: 100vh;
+        max-height: none;
+    }
+}

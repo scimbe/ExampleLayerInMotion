@@ -13,7 +13,7 @@ import {
 } from './game.js';
 
 import { drawCharacter, drawGrid, drawGoal } from './gameRendering.js';
-import { moveCharacter, stopCharacter, setActiveLayer, setGaitType, playAnimation } from './characterActions.js';
+import { moveCharacter, stopCharacter, setActiveLayer, setGaitType, playAnimation } from './characterMovement.js';
 
 // Initialisiert das Spiel
 export function initializeGame() {
@@ -22,19 +22,33 @@ export function initializeGame() {
     startInitializing();
 }
 
-// Richtet das Canvas ein
+// Richtet das Canvas ein - angepasst für Vollbild
 function setupCanvas() {
     if (!canvas) return;
     
-    // Passe Canvas-Größe an Container an
-    const container = document.querySelector(".game-board");
-    if (container) {
-        canvas.width = container.clientWidth;
-        canvas.height = container.clientHeight;
-    }
+    // Passe Canvas-Größe an den vollständigen Viewport an
+    const resizeCanvas = () => {
+        // Für mobile Vollbildansicht
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        console.log(`Canvas resized to ${canvas.width}x${canvas.height}`);
+    };
+    
+    // Initial anpassen
+    resizeCanvas();
     
     // Canvas-Steuerung aktivieren
     setupCanvasControls();
+    
+    // Bei Größenänderung anpassen
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Auch bei Orientierungsänderung auf Mobilgeräten
+    window.addEventListener('orientationchange', () => {
+        // Kurz verzögern, um sicherzustellen, dass die Größenänderung abgeschlossen ist
+        setTimeout(resizeCanvas, 100);
+    });
 }
 
 // Richtet Event-Listener ein
@@ -116,8 +130,9 @@ function setupEventListeners() {
     if (newGameBtn) {
         newGameBtn.addEventListener("click", () => {
             gameState.score = 0;
-            if (scoreElement) {
-                scoreElement.textContent = gameState.score;
+            const scoreValue = document.getElementById("scoreValue");
+            if (scoreValue) {
+                scoreValue.textContent = gameState.score;
             }
             stopCharacter();
             generateNewGoal();
@@ -168,11 +183,6 @@ function setupEventListeners() {
             }
         });
     }
-    
-    // Fenster-Resize-Handling
-    window.addEventListener("resize", () => {
-        setupCanvas();
-    });
 }
 
 // Startet die Initialisierung des Spiels
