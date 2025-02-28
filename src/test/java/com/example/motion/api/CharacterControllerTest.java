@@ -157,4 +157,38 @@ class CharacterControllerTest {
         assertNotNull(response.getBody());
         assertEquals(0.0f, response.getBody().getSpeed());
     }
+
+    @Test
+    void moveCharacter_ShouldHandleCharacterMovement() {
+        // Arrange
+        float dirX = 1.0f;
+        float dirY = 0.0f;
+        float dirZ = 0.0f;
+        float speed = 1.0f;
+
+        MotionState newState = new MotionState(
+            testCharacterId,
+            new Position(1, 0, 0),
+            new Rotation(0, 0, 0),
+            speed
+        );
+
+        when(motionService.setMovementDirection(
+            eq(testCharacterId),
+            any(Direction.class),
+            eq(speed)
+        )).thenReturn(CompletableFuture.completedFuture(newState));
+
+        // Act
+        CompletableFuture<ResponseEntity<CharacterResponse>> future = 
+            controller.moveCharacter(testCharacterId, new MovementRequest(dirX, dirY, dirZ, speed));
+        ResponseEntity<CharacterResponse> response = future.join();
+
+        // Assert
+        assertNotNull(response.getBody());
+        assertEquals(1.0f, response.getBody().getX());
+        assertEquals(0.0f, response.getBody().getY());
+        assertEquals(0.0f, response.getBody().getZ());
+        assertEquals(speed, response.getBody().getSpeed());
+    }
 }
