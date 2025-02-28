@@ -6,7 +6,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(65, 105, 225, 0.6) 0%, rgba(65, 105, 225, 0) 70%);
+    background: radial-gradient(circle, rgba(255, 0, 255, 0.6) 0%, rgba(255, 0, 255, 0) 70%);
     transform: translate(-50%, -50%);
     pointer-events: none;
     animation: magnetPulse 1s ease-out forwards;
